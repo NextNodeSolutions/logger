@@ -7,7 +7,7 @@ import type {
 	LocationInfo,
 	ProductionLocationInfo,
 	Environment,
-} from './types.js'
+} from '../types.js'
 
 // Constants for better performance and maintainability
 const STACK_TRACE_PATTERNS = {

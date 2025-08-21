@@ -13,7 +13,7 @@ import {
 	getCurrentTimestamp,
 	detectEnvironment,
 	parseLocation,
-} from './index.js'
+} from '../index.js'
 
 describe('NextNode Logger Integration', () => {
 	// Mock console methods

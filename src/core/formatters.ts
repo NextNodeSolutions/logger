@@ -3,10 +3,10 @@
  * Environment-aware formatting with colorized development output and structured JSON for production
  */
 
-import { safeStringify } from './utils.js'
-import { isDevelopmentLocation } from './types.js'
+import { safeStringify } from '../utils/serialization.js'
+import { isDevelopmentLocation } from '../types.js'
 
-import type { LogEntry, LogLevel, Environment } from './types.js'
+import type { LogEntry, LogLevel, Environment } from '../types.js'
 
 const COLORS = {
 	reset: '\x1b[0m',

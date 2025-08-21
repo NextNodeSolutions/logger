@@ -4,9 +4,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { NextNodeLogger, createLogger, logger } from './logger.js'
+import { NextNodeLogger, createLogger, logger } from '../../core/logger.js'
 
-import type { LoggerConfig } from './types.js'
+import type { LoggerConfig } from '../../types.js'
 
 describe('NextNodeLogger', () => {
 	// Mock console methods

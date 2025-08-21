@@ -4,7 +4,7 @@
  */
 
 // Export the main logger and factory
-export { logger, createLogger } from './logger.js'
+export { logger, createLogger } from './core/logger.js'
 
 // Export types for TypeScript users
 export type {
@@ -19,9 +19,7 @@ export type {
 } from './types.js'
 
 // Export utilities for advanced usage
-export {
-	generateRequestId,
-	safeStringify,
-	getCurrentTimestamp,
-} from './utils.js'
-export { detectEnvironment, parseLocation } from './location.js'
+export { generateRequestId } from './utils/crypto.js'
+export { safeStringify } from './utils/serialization.js'
+export { getCurrentTimestamp } from './utils/time.js'
+export { detectEnvironment, parseLocation } from './core/location.js'

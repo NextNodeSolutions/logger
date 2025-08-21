@@ -4,7 +4,8 @@
  */
 
 import { parseLocation, detectEnvironment } from './location.js'
-import { generateRequestId, getCurrentTimestamp } from './utils.js'
+import { generateRequestId } from '../utils/crypto.js'
+import { getCurrentTimestamp } from '../utils/time.js'
 import { formatLogEntry } from './formatters.js'
 
 import type {
@@ -14,7 +15,7 @@ import type {
 	LogLevel,
 	LoggerConfig,
 	Environment,
-} from './types.js'
+} from '../types.js'
 
 // Console methods mapping for type safety
 const CONSOLE_METHODS = {

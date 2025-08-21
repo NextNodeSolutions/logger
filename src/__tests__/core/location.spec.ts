@@ -4,7 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { parseLocation, detectEnvironment } from './location.js'
+import { parseLocation, detectEnvironment } from '../../core/location.js'
 
 describe('parseLocation', () => {
 	// Mock Error to control stack traces

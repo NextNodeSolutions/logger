@@ -4,11 +4,9 @@
 
 import { describe, it, expect, vi } from 'vitest'
 
-import {
-	generateRequestId,
-	safeStringify,
-	getCurrentTimestamp,
-} from './utils.js'
+import { generateRequestId } from '../../utils/crypto.js'
+import { safeStringify } from '../../utils/serialization.js'
+import { getCurrentTimestamp } from '../../utils/time.js'
 
 describe('generateRequestId', () => {
 	it('should generate a request ID with req_ prefix', () => {
