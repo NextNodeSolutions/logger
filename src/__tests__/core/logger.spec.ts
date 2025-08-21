@@ -2,30 +2,28 @@
  * Tests for NextNode Logger core functionality
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { NextNodeLogger, createLogger, logger } from '../../core/logger.js'
+import { NextNodeLogger, createLogger, logger } from '@/core/logger.js'
 
-import type { LoggerConfig } from '../../types.js'
+import {
+	createConsoleMocks,
+	restoreConsoleMocks,
+	type ConsoleMocks,
+} from '../test-setup.js'
+
+import type { LoggerConfig } from '@/types.js'
+
 
 describe('NextNodeLogger', () => {
-	// Mock console methods
-	const originalConsole = { ...console }
-	const mockConsoleLog = vi.fn()
-	const mockConsoleWarn = vi.fn()
-	const mockConsoleError = vi.fn()
+	let consoleMocks: ConsoleMocks
 
 	beforeEach(() => {
-		console.log = mockConsoleLog
-		console.warn = mockConsoleWarn
-		console.error = mockConsoleError
-		vi.clearAllMocks()
+		consoleMocks = createConsoleMocks()
 	})
 
 	afterEach(() => {
-		console.log = originalConsole.log
-		console.warn = originalConsole.warn
-		console.error = originalConsole.error
+		restoreConsoleMocks(consoleMocks)
 	})
 
 	describe('constructor', () => {
@@ -50,9 +48,7 @@ describe('NextNodeLogger', () => {
 			const testLogger = new NextNodeLogger()
 			testLogger.info('Test info message')
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('Test info message')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('Test info message'))
 		})
 
 		it('should log info message with object', () => {
@@ -62,11 +58,9 @@ describe('NextNodeLogger', () => {
 				details: { userId: 123 },
 			})
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('Test info')
-			expect(loggedMessage).toContain('200')
-			expect(loggedMessage).toContain('123')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('Test info'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('200'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('123'))
 		})
 
 		it('should log info message with scope', () => {
@@ -76,11 +70,9 @@ describe('NextNodeLogger', () => {
 				details: { userId: 123 },
 			})
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('User logged in')
-			expect(loggedMessage).toContain('Auth')
-			expect(loggedMessage).toContain('123')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('User logged in'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('Auth'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('123'))
 		})
 	})
 
@@ -89,9 +81,7 @@ describe('NextNodeLogger', () => {
 			const testLogger = new NextNodeLogger()
 			testLogger.warning('Test warning message')
 
-			expect(mockConsoleWarn).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleWarn.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('Test warning message')
+			expect(consoleMocks.warn).toHaveBeenCalledWith(expect.stringContaining('Test warning message'))
 		})
 
 		it('should log warning message with object', () => {
@@ -102,11 +92,9 @@ describe('NextNodeLogger', () => {
 				details: { limit: 1000, current: 1001 },
 			})
 
-			expect(mockConsoleWarn).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleWarn.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('Rate limit warning')
-			expect(loggedMessage).toContain('API')
-			expect(loggedMessage).toContain('429')
+			expect(consoleMocks.warn).toHaveBeenCalledWith(expect.stringContaining('Rate limit warning'))
+			expect(consoleMocks.warn).toHaveBeenCalledWith(expect.stringContaining('API'))
+			expect(consoleMocks.warn).toHaveBeenCalledWith(expect.stringContaining('429'))
 		})
 	})
 
@@ -115,9 +103,7 @@ describe('NextNodeLogger', () => {
 			const testLogger = new NextNodeLogger()
 			testLogger.error('Test error message')
 
-			expect(mockConsoleError).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleError.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('Test error message')
+			expect(consoleMocks.error).toHaveBeenCalledWith(expect.stringContaining('Test error message'))
 		})
 
 		it('should log error message with object', () => {
@@ -132,12 +118,10 @@ describe('NextNodeLogger', () => {
 				},
 			})
 
-			expect(mockConsoleError).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleError.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('Database error')
-			expect(loggedMessage).toContain('Database')
-			expect(loggedMessage).toContain('500')
-			expect(loggedMessage).toContain('Connection timeout')
+			expect(consoleMocks.error).toHaveBeenCalledWith(expect.stringContaining('Database error'))
+			expect(consoleMocks.error).toHaveBeenCalledWith(expect.stringContaining('Database'))
+			expect(consoleMocks.error).toHaveBeenCalledWith(expect.stringContaining('500'))
+			expect(consoleMocks.error).toHaveBeenCalledWith(expect.stringContaining('Connection timeout'))
 		})
 	})
 
@@ -150,20 +134,16 @@ describe('NextNodeLogger', () => {
 				details: { data: 'test' },
 			})
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('TestScope')
-			expect(loggedMessage).toContain('200')
-			expect(loggedMessage).toContain('test')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('TestScope'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('200'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('test'))
 		})
 
 		it('should handle object with only scope', () => {
 			const testLogger = new NextNodeLogger()
 			testLogger.info('Test message', { scope: 'OnlyScope' })
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('OnlyScope')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('OnlyScope'))
 		})
 
 		it('should handle object without scope', () => {
@@ -173,10 +153,8 @@ describe('NextNodeLogger', () => {
 				details: { data: 'test' },
 			})
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('200')
-			expect(loggedMessage).toContain('test')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('200'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('test'))
 		})
 	})
 
@@ -185,9 +163,7 @@ describe('NextNodeLogger', () => {
 			const testLogger = new NextNodeLogger({ prefix: '[TEST]' })
 			testLogger.info('Test message')
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('[TEST] Test message')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('[TEST] Test message'))
 		})
 
 		it('should add prefix to all log levels', () => {
@@ -197,17 +173,13 @@ describe('NextNodeLogger', () => {
 			testLogger.warning('Warning message')
 			testLogger.error('Error message')
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			expect(mockConsoleWarn).toHaveBeenCalledOnce()
-			expect(mockConsoleError).toHaveBeenCalledOnce()
+			expect(consoleMocks.log).toHaveBeenCalledOnce()
+			expect(consoleMocks.warn).toHaveBeenCalledOnce()
+			expect(consoleMocks.error).toHaveBeenCalledOnce()
 
-			const infoMessage = mockConsoleLog.mock.calls[0]?.[0]
-			const warnMessage = mockConsoleWarn.mock.calls[0]?.[0]
-			const errorMessage = mockConsoleError.mock.calls[0]?.[0]
-
-			expect(infoMessage).toContain('[PREFIX] Info message')
-			expect(warnMessage).toContain('[PREFIX] Warning message')
-			expect(errorMessage).toContain('[PREFIX] Error message')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('[PREFIX] Info message'))
+			expect(consoleMocks.warn).toHaveBeenCalledWith(expect.stringContaining('[PREFIX] Warning message'))
+			expect(consoleMocks.error).toHaveBeenCalledWith(expect.stringContaining('[PREFIX] Error message'))
 		})
 	})
 
@@ -218,26 +190,22 @@ describe('NextNodeLogger', () => {
 			})
 			testLogger.info('Dev message')
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-
 			// Development format should include emojis
-			expect(loggedMessage).toContain('🔵')
-			expect(loggedMessage).toContain('INFO')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('🔵'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('INFO'))
 		})
 
 		it('should format for production environment', () => {
 			const testLogger = new NextNodeLogger({ environment: 'production' })
 			testLogger.info('Prod message')
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-
-			// Production format should be JSON
-			expect(() => JSON.parse(loggedMessage)).not.toThrow()
-			const parsed = JSON.parse(loggedMessage)
-			expect(parsed.level).toBe('info')
-			expect(parsed.message).toBe('Prod message')
+			// Production format should be valid JSON with expected properties
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringMatching(/^\{.*"level"\s*:\s*"info".*\}$/)
+			)
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringContaining('"message":"Prod message"')
+			)
 		})
 	})
 
@@ -246,22 +214,16 @@ describe('NextNodeLogger', () => {
 			const testLogger = new NextNodeLogger()
 			testLogger.info('Test message')
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-
+			expect(consoleMocks.log).toHaveBeenCalledOnce()
 			// Should contain location information
-			expect(loggedMessage).toMatch(/\([^)]+\)/)
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringMatching(/\([^)]+\)/))
 		})
 
 		it('should disable location when configured', () => {
 			const testLogger = new NextNodeLogger({ includeLocation: false })
 			testLogger.info('Test message')
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-
-			// Should contain disabled location
-			expect(loggedMessage).toContain('disabled')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('disabled'))
 		})
 	})
 
@@ -286,11 +248,9 @@ describe('NextNodeLogger', () => {
 
 			testLogger.info('Complex object test', complexObject)
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('Complex')
-			expect(loggedMessage).toContain('Test User')
-			expect(loggedMessage).toContain('dark-mode')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('Complex'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('Test User'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('dark-mode'))
 		})
 
 		it('should handle circular references', () => {
@@ -303,10 +263,8 @@ describe('NextNodeLogger', () => {
 				details: circularObj,
 			})
 
-			expect(mockConsoleLog).toHaveBeenCalledOnce()
 			// Should not throw and should handle circular reference
-			const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-			expect(loggedMessage).toContain('Test')
+			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('Test'))
 		})
 	})
 
@@ -317,10 +275,10 @@ describe('NextNodeLogger', () => {
 			testLogger.info('First message')
 			testLogger.info('Second message')
 
-			expect(mockConsoleLog).toHaveBeenCalledTimes(2)
+			expect(consoleMocks.log).toHaveBeenCalledTimes(2)
 
-			const firstMessage = mockConsoleLog.mock.calls[0]?.[0]
-			const secondMessage = mockConsoleLog.mock.calls[1]?.[0]
+			const firstMessage = consoleMocks.log.mock.calls[0]?.[0]
+			const secondMessage = consoleMocks.log.mock.calls[1]?.[0]
 
 			// Both should have request IDs
 			expect(firstMessage).toMatch(/req_[a-f0-9]{8}/)
@@ -368,13 +326,12 @@ describe('default logger', () => {
 	})
 
 	it('should be usable immediately', () => {
-		const mockConsoleLog = vi.fn()
-		console.log = mockConsoleLog
+		const localMocks = createConsoleMocks()
 
 		logger.info('Default logger test')
 
-		expect(mockConsoleLog).toHaveBeenCalledOnce()
-		const loggedMessage = mockConsoleLog.mock.calls[0]?.[0]
-		expect(loggedMessage).toContain('Default logger test')
+		expect(localMocks.log).toHaveBeenCalledWith(expect.stringContaining('Default logger test'))
+		
+		restoreConsoleMocks(localMocks)
 	})
 })

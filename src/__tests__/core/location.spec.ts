@@ -4,18 +4,17 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { parseLocation, detectEnvironment } from '../../core/location.js'
+import { parseLocation, detectEnvironment } from '@/core/location.js'
+
+import { createMockError, MOCK_STACKS } from '../test-setup.js'
 
 describe('parseLocation', () => {
-	// Mock Error to control stack traces
-	const originalError = global.Error
-
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
 
 	afterEach(() => {
-		global.Error = originalError
+		vi.unstubAllGlobals()
 	})
 
 	it('should parse location in development mode', () => {
@@ -38,14 +37,7 @@ describe('parseLocation', () => {
 	})
 
 	it('should parse location in production mode (function only)', () => {
-		const mockStack = `Error
-    at parseLocation (/path/to/location.ts:45:12)
-    at testFunction (/path/to/test.ts:10:5)
-    at Object.<anonymous> (/path/to/main.ts:25:8)`
-
-		global.Error = class MockError extends Error {
-			override stack = mockStack
-		} as ErrorConstructor
+		vi.stubGlobal('Error', createMockError(MOCK_STACKS.simple))
 
 		const location = parseLocation(true)
 
@@ -55,13 +47,7 @@ describe('parseLocation', () => {
 	})
 
 	it('should handle anonymous functions', () => {
-		const mockStack = `Error
-    at parseLocation (/path/to/location.ts:45:12)
-    at <anonymous> (/path/to/test.ts:10:5)`
-
-		global.Error = class MockError extends Error {
-			override stack = mockStack
-		} as ErrorConstructor
+		vi.stubGlobal('Error', createMockError(MOCK_STACKS.anonymous))
 
 		const location = parseLocation(false)
 
@@ -73,13 +59,7 @@ describe('parseLocation', () => {
 	})
 
 	it('should handle object methods', () => {
-		const mockStack = `Error
-    at parseLocation (/path/to/location.ts:45:12)
-    at Object.methodName (/path/to/test.ts:15:3)`
-
-		global.Error = class MockError extends Error {
-			override stack = mockStack
-		} as ErrorConstructor
+		vi.stubGlobal('Error', createMockError(MOCK_STACKS.objectMethod))
 
 		const location = parseLocation(false)
 
@@ -97,9 +77,7 @@ describe('parseLocation', () => {
     at info (/path/to/logger.ts:120:8)
     at userFunction (/path/to/app.ts:30:2)`
 
-		global.Error = class MockError extends Error {
-			override stack = mockStack
-		} as ErrorConstructor
+		vi.stubGlobal('Error', createMockError(mockStack))
 
 		const location = parseLocation(false)
 
@@ -111,14 +89,7 @@ describe('parseLocation', () => {
 	})
 
 	it('should skip node_modules', () => {
-		const mockStack = `Error
-    at parseLocation (/path/to/location.ts:45:12)
-    at someLibFunction (/path/to/node_modules/lib/index.js:100:5)
-    at userFunction (/path/to/app.ts:30:2)`
-
-		global.Error = class MockError extends Error {
-			override stack = mockStack
-		} as ErrorConstructor
+		vi.stubGlobal('Error', createMockError(MOCK_STACKS.withNodeModules))
 
 		const location = parseLocation(false)
 
@@ -130,13 +101,7 @@ describe('parseLocation', () => {
 	})
 
 	it('should handle Windows-style paths', () => {
-		const mockStack = `Error
-    at parseLocation (C:\\path\\to\\location.ts:45:12)
-    at testFunction (C:\\path\\to\\test.ts:10:5)`
-
-		global.Error = class MockError extends Error {
-			override stack = mockStack
-		} as ErrorConstructor
+		vi.stubGlobal('Error', createMockError(MOCK_STACKS.windows))
 
 		const location = parseLocation(false)
 
@@ -149,9 +114,7 @@ describe('parseLocation', () => {
 	})
 
 	it('should provide fallback when stack parsing fails', () => {
-		global.Error = class MockError extends Error {
-			override stack = 'Invalid stack trace format'
-		} as ErrorConstructor
+		vi.stubGlobal('Error', createMockError(MOCK_STACKS.invalid))
 
 		const location = parseLocation(false)
 
@@ -163,9 +126,7 @@ describe('parseLocation', () => {
 	})
 
 	it('should provide fallback in production when stack parsing fails', () => {
-		global.Error = class MockError extends Error {
-			override stack = 'Invalid stack trace format'
-		} as ErrorConstructor
+		vi.stubGlobal('Error', createMockError(MOCK_STACKS.invalid))
 
 		const location = parseLocation(true)
 
@@ -175,9 +136,7 @@ describe('parseLocation', () => {
 	})
 
 	it('should handle missing stack trace', () => {
-		global.Error = class MockError extends Error {
-			override stack = ''
-		} as ErrorConstructor
+		vi.stubGlobal('Error', createMockError(MOCK_STACKS.empty))
 
 		const location = parseLocation(false)
 
@@ -190,9 +149,9 @@ describe('parseLocation', () => {
 
 	it('should handle Error constructor throwing', () => {
 		// Mock Error constructor that throws
-		global.Error = vi.fn().mockImplementation(() => {
-			throw new originalError('Error constructor failed')
-		}) as unknown as ErrorConstructor
+		vi.stubGlobal('Error', vi.fn().mockImplementation(() => {
+			throw new Error('Error constructor failed')
+		}))
 
 		const location = parseLocation(false)
 

@@ -8,9 +8,9 @@ import {
 	formatForDevelopment,
 	formatForProduction,
 	formatLogEntry,
-} from '../../core/formatters.js'
+} from '@/core/formatters.js'
 
-import type { LogEntry } from '../../types.js'
+import type { LogEntry } from '@/types.js'
 
 describe('formatForDevelopment', () => {
 	const baseEntry: LogEntry = {
