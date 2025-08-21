@@ -16,7 +16,6 @@
 	],
 	"license": "MIT",
 	"author": "NextNodeSolutions",
-	"main": "./dist/index.js",
 	"scripts": {
 		"prebuild": "pnpm clean",
 		"build": "tsc -p tsconfig.build.json",
@@ -65,11 +64,8 @@
 	"type": "module",
 	"exports": {
 		".": {
-			"import": "./dist/index.js",
-			"require": "./dist/index.js",
-			"types": "./dist/index.d.ts"
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
 		}
-	},
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts"
+	}
 }
