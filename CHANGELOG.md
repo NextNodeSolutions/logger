@@ -1,5 +1,13 @@
 # @nextnode/logger
 
+## 0.2.1
+
+### Patch Changes
+
+- [#4](https://github.com/NextNodeSolutions/logger/pull/4) [`cbc752f`](https://github.com/NextNodeSolutions/logger/commit/cbc752feaee53a7fd92629c86f197a08c816153b) Thanks [@walid-mos](https://github.com/walid-mos)! - fix: add files field to package.json to ensure dist folder is published to npm
+
+  Previously, the package was publishing source TypeScript files instead of the built JavaScript files in the dist directory. This caused issues when consuming the package as the TypeScript files were present in node_modules instead of the compiled JavaScript.
+
 ## 0.2.0
 
 ### Minor Changes
