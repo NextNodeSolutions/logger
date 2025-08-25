@@ -4,7 +4,7 @@
  */
 
 // Literal union types for better type inference
-export type LogLevel = 'info' | 'warning' | 'error'
+export type LogLevel = 'info' | 'warn' | 'error'
 export type Environment = 'development' | 'production'
 
 // Location information types with discriminated union
@@ -49,13 +49,13 @@ export interface LoggerConfig {
 // Logger interface with method signatures
 export interface Logger {
 	info(message: string, object?: LogObject): void
-	warning(message: string, object?: LogObject): void
+	warn(message: string, object?: LogObject): void
 	error(message: string, object?: LogObject): void
 }
 
 // Type guards for runtime type checking
 export const isLogLevel = (value: unknown): value is LogLevel =>
-	typeof value === 'string' && ['info', 'warning', 'error'].includes(value)
+	typeof value === 'string' && ['info', 'warn', 'error'].includes(value)
 
 export const isEnvironment = (value: unknown): value is Environment =>
 	typeof value === 'string' && ['development', 'production'].includes(value)

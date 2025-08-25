@@ -20,7 +20,7 @@ import type {
 // Console methods mapping for type safety
 const CONSOLE_METHODS = {
 	info: 'log',
-	warning: 'warn',
+	warn: 'warn',
 	error: 'error',
 } as const
 
@@ -94,8 +94,8 @@ export class NextNodeLogger implements Logger {
 		this.log('info', message, object)
 	}
 
-	warning(message: string, object?: LogObject): void {
-		this.log('warning', message, object)
+	warn(message: string, object?: LogObject): void {
+		this.log('warn', message, object)
 	}
 
 	error(message: string, object?: LogObject): void {

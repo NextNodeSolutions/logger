@@ -35,7 +35,7 @@ describe('NextNode Logger Integration', () => {
 		it('should export logger instance', () => {
 			expect(logger).toBeDefined()
 			expect(typeof logger.info).toBe('function')
-			expect(typeof logger.warning).toBe('function')
+			expect(typeof logger.warn).toBe('function')
 			expect(typeof logger.error).toBe('function')
 		})
 
@@ -71,7 +71,7 @@ describe('NextNode Logger Integration', () => {
 			})
 
 			// Failed login
-			authLogger.warning('Login failed', {
+			authLogger.warn('Login failed', {
 				scope: 'Auth',
 				status: 401,
 				details: {
@@ -84,19 +84,43 @@ describe('NextNode Logger Integration', () => {
 			expect(consoleMocks.warn).toHaveBeenCalledTimes(1)
 
 			// Verify first log call
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(1, expect.stringContaining('[AUTH] Login attempt'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(1, expect.stringContaining('[Auth]'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(1, expect.stringContaining('user@example.com'))
-			
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				1,
+				expect.stringContaining('[AUTH] Login attempt'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				1,
+				expect.stringContaining('[Auth]'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				1,
+				expect.stringContaining('user@example.com'),
+			)
+
 			// Verify second log call
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(2, expect.stringContaining('[AUTH] Login successful'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(2, expect.stringContaining('200'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(2, expect.stringContaining('123'))
-			
-			// Verify warning call
-			expect(consoleMocks.warn).toHaveBeenCalledWith(expect.stringContaining('[AUTH] Login failed'))
-			expect(consoleMocks.warn).toHaveBeenCalledWith(expect.stringContaining('401'))
-			expect(consoleMocks.warn).toHaveBeenCalledWith(expect.stringContaining('Invalid password'))
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining('[AUTH] Login successful'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining('200'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining('123'),
+			)
+
+			// Verify warn call
+			expect(consoleMocks.warn).toHaveBeenCalledWith(
+				expect.stringContaining('[AUTH] Login failed'),
+			)
+			expect(consoleMocks.warn).toHaveBeenCalledWith(
+				expect.stringContaining('401'),
+			)
+			expect(consoleMocks.warn).toHaveBeenCalledWith(
+				expect.stringContaining('Invalid password'),
+			)
 		})
 
 		it('should handle database operation logging scenario', () => {
@@ -113,7 +137,7 @@ describe('NextNode Logger Integration', () => {
 			})
 
 			// Slow query warning
-			dbLogger.warning('Slow query detected', {
+			dbLogger.warn('Slow query detected', {
 				scope: 'Database',
 				details: {
 					query: 'SELECT * FROM orders JOIN users ON orders.user_id = users.id',
@@ -138,15 +162,29 @@ describe('NextNode Logger Integration', () => {
 			expect(consoleMocks.warn).toHaveBeenCalledTimes(1)
 			expect(consoleMocks.error).toHaveBeenCalledTimes(1)
 
-			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('[Database]'))
-			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('45'))
-			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('150'))
-			
-			expect(consoleMocks.warn).toHaveBeenCalledWith(expect.stringContaining('Slow query'))
-			expect(consoleMocks.warn).toHaveBeenCalledWith(expect.stringContaining('2500'))
-			
-			expect(consoleMocks.error).toHaveBeenCalledWith(expect.stringContaining('Connection timeout'))
-			expect(consoleMocks.error).toHaveBeenCalledWith(expect.stringContaining('500'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringContaining('[Database]'),
+			)
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringContaining('45'),
+			)
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringContaining('150'),
+			)
+
+			expect(consoleMocks.warn).toHaveBeenCalledWith(
+				expect.stringContaining('Slow query'),
+			)
+			expect(consoleMocks.warn).toHaveBeenCalledWith(
+				expect.stringContaining('2500'),
+			)
+
+			expect(consoleMocks.error).toHaveBeenCalledWith(
+				expect.stringContaining('Connection timeout'),
+			)
+			expect(consoleMocks.error).toHaveBeenCalledWith(
+				expect.stringContaining('500'),
+			)
 		})
 
 		it('should handle API request logging scenario', () => {
@@ -191,17 +229,36 @@ describe('NextNode Logger Integration', () => {
 			expect(consoleMocks.error).toHaveBeenCalledTimes(1)
 
 			// Verify first API log call
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(1, expect.stringContaining('POST'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(1, expect.stringContaining('/api/users'))
-			
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				1,
+				expect.stringContaining('POST'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				1,
+				expect.stringContaining('/api/users'),
+			)
+
 			// Verify second API log call
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(2, expect.stringContaining('201'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(2, expect.stringContaining('456'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(2, expect.stringContaining('120'))
-			
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining('201'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining('456'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining('120'),
+			)
+
 			// Verify error call
-			expect(consoleMocks.error).toHaveBeenCalledWith(expect.stringContaining('Email is required'))
-			expect(consoleMocks.error).toHaveBeenCalledWith(expect.stringContaining('400'))
+			expect(consoleMocks.error).toHaveBeenCalledWith(
+				expect.stringContaining('Email is required'),
+			)
+			expect(consoleMocks.error).toHaveBeenCalledWith(
+				expect.stringContaining('400'),
+			)
 		})
 	})
 
@@ -242,9 +299,15 @@ describe('NextNode Logger Integration', () => {
 				details: complexData,
 			})
 
-			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('John Doe'))
-			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('New York'))
-			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('notifications'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringContaining('John Doe'),
+			)
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringContaining('New York'),
+			)
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringContaining('notifications'),
+			)
 		})
 
 		it('should handle all primitive types in details', () => {
@@ -267,8 +330,12 @@ describe('NextNode Logger Integration', () => {
 			})
 
 			// Should not throw and should handle all types
-			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('test string'))
-			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('42'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringContaining('test string'),
+			)
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringContaining('42'),
+			)
 		})
 
 		it('should handle functions in details', () => {
@@ -289,8 +356,12 @@ describe('NextNode Logger Integration', () => {
 				details: objectWithFunctions,
 			})
 
-			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('Function'))
-			expect(consoleMocks.log).toHaveBeenCalledWith(expect.stringContaining('test'))
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringContaining('Function'),
+			)
+			expect(consoleMocks.log).toHaveBeenCalledWith(
+				expect.stringContaining('test'),
+			)
 		})
 
 		it('should handle empty and minimal objects', () => {
@@ -307,12 +378,24 @@ describe('NextNode Logger Integration', () => {
 			logger.info('Only details', { details: 'simple string' })
 
 			expect(consoleMocks.log).toHaveBeenCalledTimes(4)
-			
+
 			// Verify each nth call
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(1, expect.stringContaining('Empty object'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(2, expect.stringContaining('[MinimalTest]'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(3, expect.stringContaining('200'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(4, expect.stringContaining('simple string'))
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				1,
+				expect.stringContaining('Empty object'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining('[MinimalTest]'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				3,
+				expect.stringContaining('200'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				4,
+				expect.stringContaining('simple string'),
+			)
 		})
 	})
 
@@ -333,13 +416,28 @@ describe('NextNode Logger Integration', () => {
 			expect(consoleMocks.log).toHaveBeenCalledTimes(2)
 
 			// Development should have emojis and colors (first call)
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(1, expect.stringContaining('🔵'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(1, expect.stringContaining('[Environment]'))
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				1,
+				expect.stringContaining('🔵'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				1,
+				expect.stringContaining('[Environment]'),
+			)
 
 			// Production should be valid JSON (second call)
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(2, expect.stringMatching(/^\{.*"level"\s*:\s*"info".*\}$/))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(2, expect.stringContaining('"scope":"Environment"'))
-			expect(consoleMocks.log).toHaveBeenNthCalledWith(2, expect.stringContaining('"message":"Production test"'))
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				2,
+				expect.stringMatching(/^\{.*"level"\s*:\s*"info".*\}$/),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining('"scope":"Environment"'),
+			)
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining('"message":"Production test"'),
+			)
 		})
 	})
 
@@ -372,9 +470,12 @@ describe('NextNode Logger Integration', () => {
 
 			// Test that each call has a request ID pattern
 			for (let i = 1; i <= 100; i++) {
-				expect(consoleMocks.log).toHaveBeenNthCalledWith(i, expect.stringMatching(/req_[a-z0-9]+/))
+				expect(consoleMocks.log).toHaveBeenNthCalledWith(
+					i,
+					expect.stringMatching(/req_[a-z0-9]+/),
+				)
 			}
-			
+
 			// Note: We assume request IDs are unique based on the generateRequestId implementation
 			// Each call should contain a request ID pattern
 		})
