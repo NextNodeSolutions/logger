@@ -1,5 +1,17 @@
 # @nextnode/logger
 
+## 0.2.2
+
+### Patch Changes
+
+- [#6](https://github.com/NextNodeSolutions/logger/pull/6) [`0823977`](https://github.com/NextNodeSolutions/logger/commit/08239770866614d267a37015cba3691e17336253) Thanks [@walid-mos](https://github.com/walid-mos)! - Fix TypeScript path resolution in build output
+
+  - Add tsc-alias dependency to resolve @/ paths during build process
+  - Update build script to run tsc-alias after TypeScript compilation
+  - Fix module resolution issue where @/ paths in tests weren't resolved properly
+  - Ensure built package can be imported correctly from external projects
+  - All existing functionality preserved with improved build reliability
+
 ## 0.2.1
 
 ### Patch Changes
