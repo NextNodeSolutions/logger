@@ -22,13 +22,13 @@ const COLORS = {
 
 const LOG_LEVEL_COLORS: Record<LogLevel, string> = {
 	info: COLORS.blue,
-	warning: COLORS.yellow,
+	warn: COLORS.yellow,
 	error: COLORS.red,
 } as const
 
 const LOG_LEVEL_ICONS: Record<LogLevel, string> = {
 	info: '🔵',
-	warning: '⚠️ ',
+	warn: '⚠️ ',
 	error: '🔴',
 } as const
 

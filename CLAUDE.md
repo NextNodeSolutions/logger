@@ -68,7 +68,7 @@ pnpm changeset:publish  # Publish to npm registry
 ## Library Features
 
 ### Core Logging Functionality
-- **Multiple Log Levels**: `debug`, `info`, `warn`, `error` with environment-aware filtering
+- **Multiple Log Levels**: `info`, `warn`, `error` with environment-aware filtering
 - **Scoped Logging**: Organize logs by scope/module for better debugging
 - **Request Tracking**: Automatic request ID generation for distributed tracing
 - **Location Tracking**: Automatic call site detection (file, function, line)
@@ -86,6 +86,7 @@ import { logger, createLogger } from '@nextnode/logger'
 
 // Default logger
 logger.info('Hello world')
+logger.warn('Something might be wrong', { userId })
 logger.error('Something went wrong', { error, userId })
 
 // Scoped logger

@@ -32,12 +32,12 @@ describe('formatForDevelopment', () => {
 		expect(result).toContain('10:30:15')
 	})
 
-	it('should format warning log entry', () => {
-		const entry: LogEntry = { ...baseEntry, level: 'warning' }
+	it('should format warn log entry', () => {
+		const entry: LogEntry = { ...baseEntry, level: 'warn' }
 		const result = formatForDevelopment(entry)
 
 		expect(result).toContain('⚠️')
-		expect(result).toContain('WARNING')
+		expect(result).toContain('WARN')
 	})
 
 	it('should format error log entry', () => {
@@ -209,7 +209,7 @@ describe('formatForProduction', () => {
 	})
 
 	it('should produce valid JSON for all log levels', () => {
-		const levels = ['info', 'warning', 'error'] as const
+		const levels = ['info', 'warn', 'error'] as const
 
 		levels.forEach(level => {
 			const entry: LogEntry = { ...baseEntry, level }
