@@ -6,6 +6,7 @@
 // Literal union types for better type inference
 export type LogLevel = 'info' | 'warn' | 'error'
 export type Environment = 'development' | 'production'
+export type RuntimeEnvironment = 'node' | 'browser' | 'webworker' | 'unknown'
 
 // Location information types with discriminated union
 export interface DevelopmentLocationInfo {
@@ -64,3 +65,9 @@ export const isDevelopmentLocation = (
 	location: DevelopmentLocationInfo | ProductionLocationInfo,
 ): location is DevelopmentLocationInfo =>
 	'file' in location && 'line' in location
+
+export const isRuntimeEnvironment = (
+	value: unknown,
+): value is RuntimeEnvironment =>
+	typeof value === 'string' &&
+	['node', 'browser', 'webworker', 'unknown'].includes(value)
