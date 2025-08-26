@@ -2,7 +2,7 @@
  * Tests for NextNode Logger formatters
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import {
 	formatForDevelopment,
@@ -13,13 +13,26 @@ import {
 import type { LogEntry } from '@/types.js'
 
 describe('formatForDevelopment', () => {
-	const baseEntry: LogEntry = {
-		level: 'info',
-		message: 'Test message',
-		timestamp: '2024-08-21T10:30:15.123Z',
-		location: { file: 'test.ts', line: 42, function: 'testFunction' },
-		requestId: 'req_abc12345',
-	}
+	let mockDate: Date
+	let baseEntry: LogEntry
+
+	beforeEach(() => {
+		// Use a fixed date for consistent testing
+		mockDate = new Date('2024-08-21T10:30:15.123Z')
+		vi.setSystemTime(mockDate)
+
+		baseEntry = {
+			level: 'info',
+			message: 'Test message',
+			timestamp: mockDate.toISOString(),
+			location: { file: 'test.ts', line: 42, function: 'testFunction' },
+			requestId: 'req_abc12345',
+		}
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
 
 	it('should format basic info log entry', () => {
 		const result = formatForDevelopment(baseEntry)
@@ -114,9 +127,13 @@ describe('formatForDevelopment', () => {
 	})
 
 	it('should format timestamp correctly', () => {
+		// Set specific time for this test
+		const specificDate = new Date('2024-12-25T14:30:45.678Z')
+		vi.setSystemTime(specificDate)
+
 		const entry: LogEntry = {
 			...baseEntry,
-			timestamp: '2024-12-25T14:30:45.678Z',
+			timestamp: specificDate.toISOString(),
 		}
 		const result = formatForDevelopment(entry)
 
@@ -135,13 +152,26 @@ describe('formatForDevelopment', () => {
 })
 
 describe('formatForProduction', () => {
-	const baseEntry: LogEntry = {
-		level: 'info',
-		message: 'Test message',
-		timestamp: '2024-08-21T10:30:15.123Z',
-		location: { function: 'testFunction' },
-		requestId: 'req_abc12345',
-	}
+	let mockDate: Date
+	let baseEntry: LogEntry
+
+	beforeEach(() => {
+		// Use a fixed date for consistent testing
+		mockDate = new Date('2024-08-21T10:30:15.123Z')
+		vi.setSystemTime(mockDate)
+
+		baseEntry = {
+			level: 'info',
+			message: 'Test message',
+			timestamp: mockDate.toISOString(),
+			location: { function: 'testFunction' },
+			requestId: 'req_abc12345',
+		}
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
 
 	it('should format basic log entry as JSON', () => {
 		const result = formatForProduction(baseEntry)
@@ -208,28 +238,40 @@ describe('formatForProduction', () => {
 		})
 	})
 
-	it('should produce valid JSON for all log levels', () => {
-		const levels = ['info', 'warn', 'error'] as const
-
-		levels.forEach(level => {
+	it.each([['info' as const], ['warn' as const], ['error' as const]])(
+		'should produce valid JSON for %s level',
+		level => {
 			const entry: LogEntry = { ...baseEntry, level }
 			const result = formatForProduction(entry)
 
 			expect(() => JSON.parse(result)).not.toThrow()
 			const parsed = JSON.parse(result)
 			expect(parsed.level).toBe(level)
-		})
-	})
+		},
+	)
 })
 
 describe('formatLogEntry', () => {
-	const baseEntry: LogEntry = {
-		level: 'info',
-		message: 'Test message',
-		timestamp: '2024-08-21T10:30:15.123Z',
-		location: { function: 'testFunction' },
-		requestId: 'req_abc12345',
-	}
+	let mockDate: Date
+	let baseEntry: LogEntry
+
+	beforeEach(() => {
+		// Use a fixed date for consistent testing
+		mockDate = new Date('2024-08-21T10:30:15.123Z')
+		vi.setSystemTime(mockDate)
+
+		baseEntry = {
+			level: 'info',
+			message: 'Test message',
+			timestamp: mockDate.toISOString(),
+			location: { function: 'testFunction' },
+			requestId: 'req_abc12345',
+		}
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
 
 	it('should use development formatter for development environment', () => {
 		const result = formatLogEntry(baseEntry, 'development')

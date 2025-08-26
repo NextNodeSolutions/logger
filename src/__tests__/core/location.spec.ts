@@ -23,9 +23,12 @@ describe('parseLocation', () => {
     at testFunction (/path/to/test.ts:10:5)
     at Object.<anonymous> (/path/to/main.ts:25:8)`
 
-		global.Error = class MockError extends Error {
-			override stack = mockStack
-		} as ErrorConstructor
+		vi.stubGlobal(
+			'Error',
+			class MockError extends Error {
+				override stack = mockStack
+			} as ErrorConstructor,
+		)
 
 		const location = parseLocation(false)
 
@@ -149,9 +152,12 @@ describe('parseLocation', () => {
 
 	it('should handle Error constructor throwing', () => {
 		// Mock Error constructor that throws
-		vi.stubGlobal('Error', vi.fn().mockImplementation(() => {
-			throw new Error('Error constructor failed')
-		}))
+		vi.stubGlobal(
+			'Error',
+			vi.fn().mockImplementation(() => {
+				throw new Error('Error constructor failed')
+			}),
+		)
 
 		const location = parseLocation(false)
 

@@ -222,46 +222,56 @@ describe('NextNodeLogger', () => {
 			expect(consoleMocks.warn).toHaveBeenCalledOnce()
 			expect(consoleMocks.error).toHaveBeenCalledOnce()
 
-			expect(consoleMocks.log).toHaveBeenCalledWith(
+			expect(consoleMocks.log).toHaveBeenNthCalledWith(
+				1,
 				expect.stringContaining('[PREFIX] Info message'),
 			)
-			expect(consoleMocks.warn).toHaveBeenCalledWith(
+			expect(consoleMocks.warn).toHaveBeenNthCalledWith(
+				1,
 				expect.stringContaining('[PREFIX] Warning message'),
 			)
-			expect(consoleMocks.error).toHaveBeenCalledWith(
+			expect(consoleMocks.error).toHaveBeenNthCalledWith(
+				1,
 				expect.stringContaining('[PREFIX] Error message'),
 			)
 		})
 	})
 
 	describe('environment-specific behavior', () => {
-		it('should format for development environment', () => {
-			const testLogger = new NextNodeLogger({
-				environment: 'development',
-			})
-			testLogger.info('Dev message')
+		it.each([
+			[
+				'development',
+				{ hasEmojis: true, hasJSON: false, emoji: '🔵', level: 'INFO' },
+			],
+			[
+				'production',
+				{ hasEmojis: false, hasJSON: true, emoji: null, level: 'info' },
+			],
+		] as const)(
+			'should format correctly for %s environment',
+			(environment, expectations) => {
+				const testLogger = new NextNodeLogger({ environment })
+				testLogger.info('Test message')
 
-			// Development format should include emojis
-			expect(consoleMocks.log).toHaveBeenCalledWith(
-				expect.stringContaining('🔵'),
-			)
-			expect(consoleMocks.log).toHaveBeenCalledWith(
-				expect.stringContaining('INFO'),
-			)
-		})
+				if (expectations.hasEmojis) {
+					expect(consoleMocks.log).toHaveBeenCalledWith(
+						expect.stringContaining(expectations.emoji!),
+					)
+					expect(consoleMocks.log).toHaveBeenCalledWith(
+						expect.stringContaining(expectations.level),
+					)
+				}
 
-		it('should format for production environment', () => {
-			const testLogger = new NextNodeLogger({ environment: 'production' })
-			testLogger.info('Prod message')
-
-			// Production format should be valid JSON with expected properties
-			expect(consoleMocks.log).toHaveBeenCalledWith(
-				expect.stringMatching(/^\{.*"level"\s*:\s*"info".*\}$/),
-			)
-			expect(consoleMocks.log).toHaveBeenCalledWith(
-				expect.stringContaining('"message":"Prod message"'),
-			)
-		})
+				if (expectations.hasJSON) {
+					expect(consoleMocks.log).toHaveBeenCalledWith(
+						expect.stringMatching(/^\{.*"level"\s*:\s*"info".*\}$/),
+					)
+					expect(consoleMocks.log).toHaveBeenCalledWith(
+						expect.stringContaining('"message":"Test message"'),
+					)
+				}
+			},
+		)
 	})
 
 	describe('location handling', () => {

@@ -3,7 +3,7 @@
  * Testing the public API and end-to-end functionality
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 import {
 	logger,
@@ -25,10 +25,14 @@ describe('NextNode Logger Integration', () => {
 
 	beforeEach(() => {
 		consoleMocks = createConsoleMocks()
+		// Use fake timers for consistent timestamp testing
+		vi.useFakeTimers()
+		vi.setSystemTime(new Date('2024-08-21T10:30:15.123Z'))
 	})
 
 	afterEach(() => {
 		restoreConsoleMocks(consoleMocks)
+		vi.useRealTimers()
 	})
 
 	describe('Public API exports', () => {
@@ -288,7 +292,7 @@ describe('NextNode Logger Integration', () => {
 					},
 				},
 				metadata: {
-					timestamp: new Date().toISOString(),
+					timestamp: new Date().toISOString(), // This will use mocked time
 					source: 'integration-test',
 					version: '1.0.0',
 				},

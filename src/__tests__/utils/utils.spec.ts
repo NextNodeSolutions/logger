@@ -2,18 +2,22 @@
  * Tests for NextNode Logger utilities
  */
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import { generateRequestId } from '@/utils/crypto.js'
 import { safeStringify } from '@/utils/serialization.js'
 import { getCurrentTimestamp } from '@/utils/time.js'
 
-// Mock the crypto module at the top level
+// Mock the crypto module using vi.hoisted for better isolation
+const mockRandomUUID = vi.hoisted(() => vi.fn())
 vi.mock('node:crypto', () => ({
-	randomUUID: vi.fn(),
+	randomUUID: mockRandomUUID,
 }))
 
 describe('generateRequestId', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
 	it('should generate a request ID with req_ prefix', () => {
 		const requestId = generateRequestId()
 		// Should match either UUID format (8 hex chars) or fallback format (longer)
@@ -27,18 +31,14 @@ describe('generateRequestId', () => {
 		expect(id1).not.toBe(id2)
 	})
 
-	it('should fallback gracefully when crypto.randomUUID is not available', async () => {
-		const { randomUUID } = await import('node:crypto')
-		vi.mocked(randomUUID).mockImplementation(() => {
+	it('should fallback gracefully when crypto.randomUUID is not available', () => {
+		mockRandomUUID.mockImplementation(() => {
 			throw new Error('Not available')
 		})
 
 		const requestId = generateRequestId()
 		expect(requestId).toMatch(/^req_[a-z0-9]+$/)
 		expect(requestId.length).toBeGreaterThan(4)
-		
-		// Restore the mock
-		vi.mocked(randomUUID).mockRestore()
 	})
 })
 
@@ -156,12 +156,14 @@ describe('getCurrentTimestamp', () => {
 		expect(date.getTime()).not.toBeNaN()
 	})
 
-	it('should return different timestamps when called at different times', async () => {
+	it('should return different timestamps when called at different times', () => {
+		vi.useFakeTimers()
+
 		const timestamp1 = getCurrentTimestamp()
-		// Wait a small amount to ensure different timestamps (2ms to be safe)
-		await new Promise(resolve => setTimeout(resolve, 2))
+		vi.advanceTimersByTime(1000) // Advance by 1 second
 		const timestamp2 = getCurrentTimestamp()
 
 		expect(timestamp1).not.toBe(timestamp2)
+		vi.useRealTimers()
 	})
 })
