@@ -20,19 +20,12 @@ export const detectRuntime = (): RuntimeEnvironment => {
 	}
 
 	// Check for Web Worker environment
-	if (
-		typeof globalThis !== 'undefined' &&
-		typeof globalThis.importScripts === 'function'
-	) {
+	if (typeof importScripts === 'function') {
 		return 'webworker'
 	}
 
 	// Check for Browser environment
-	if (
-		typeof globalThis !== 'undefined' &&
-		typeof globalThis.window === 'object' &&
-		typeof globalThis.document === 'object'
-	) {
+	if (typeof window === 'object' && typeof document === 'object') {
 		return 'browser'
 	}
 
@@ -42,5 +35,10 @@ export const detectRuntime = (): RuntimeEnvironment => {
 /**
  * Check if Web Crypto API is available in current environment
  */
-export const hasCryptoSupport = (): boolean =>
-	!!(globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function')
+export const hasCryptoSupport = (): boolean => {
+	try {
+		return !!(crypto && typeof crypto.randomUUID === 'function')
+	} catch {
+		return false
+	}
+}

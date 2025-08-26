@@ -29,16 +29,6 @@ describe('Environment Detection', () => {
 			vi.stubGlobal('window', {})
 			vi.stubGlobal('document', {})
 
-			// Ensure globalThis has window and document
-			Object.defineProperty(globalThis, 'window', {
-				value: {},
-				configurable: true,
-			})
-			Object.defineProperty(globalThis, 'document', {
-				value: {},
-				configurable: true,
-			})
-
 			const runtime = detectRuntime()
 			expect(runtime).toBe('browser')
 		})
@@ -49,11 +39,8 @@ describe('Environment Detection', () => {
 			vi.stubGlobal('window', undefined)
 			vi.stubGlobal('document', undefined)
 
-			// Add importScripts to globalThis
-			Object.defineProperty(globalThis, 'importScripts', {
-				value: vi.fn(),
-				configurable: true,
-			})
+			// Mock importScripts global
+			vi.stubGlobal('importScripts', vi.fn())
 
 			const runtime = detectRuntime()
 			expect(runtime).toBe('webworker')
@@ -76,28 +63,19 @@ describe('Environment Detection', () => {
 			vi.stubGlobal('window', {})
 			vi.stubGlobal('document', {})
 
-			Object.defineProperty(globalThis, 'window', {
-				value: {},
-				configurable: true,
-			})
-			Object.defineProperty(globalThis, 'document', {
-				value: {},
-				configurable: true,
-			})
-
 			const runtime = detectRuntime()
 			expect(runtime).toBe('node')
 		})
 	})
 
 	describe('hasCryptoSupport', () => {
-		it('should detect crypto support when globalThis.crypto.randomUUID exists', () => {
+		it('should detect crypto support when crypto.randomUUID exists', () => {
 			// Default Node.js environment should have crypto support
 			const hasSupport = hasCryptoSupport()
 			expect(hasSupport).toBe(true)
 		})
 
-		it('should detect lack of crypto support when globalThis.crypto is undefined', () => {
+		it('should detect lack of crypto support when crypto is undefined', () => {
 			// Mock environment without crypto
 			vi.stubGlobal('crypto', undefined)
 
@@ -153,17 +131,10 @@ describe('Environment Detection', () => {
 			// Mock modern browser environment
 			vi.stubGlobal('process', undefined)
 			vi.stubGlobal('importScripts', undefined) // Ensure webworker detection is disabled
+			vi.stubGlobal('window', {})
+			vi.stubGlobal('document', {})
 			vi.stubGlobal('crypto', {
 				randomUUID: vi.fn().mockReturnValue('browser-uuid'),
-			})
-
-			Object.defineProperty(globalThis, 'window', {
-				value: {},
-				configurable: true,
-			})
-			Object.defineProperty(globalThis, 'document', {
-				value: {},
-				configurable: true,
 			})
 
 			const runtime = detectRuntime()
@@ -177,16 +148,9 @@ describe('Environment Detection', () => {
 			// Mock old browser environment
 			vi.stubGlobal('process', undefined)
 			vi.stubGlobal('importScripts', undefined) // Ensure webworker detection is disabled
+			vi.stubGlobal('window', {})
+			vi.stubGlobal('document', {})
 			vi.stubGlobal('crypto', undefined)
-
-			Object.defineProperty(globalThis, 'window', {
-				value: {},
-				configurable: true,
-			})
-			Object.defineProperty(globalThis, 'document', {
-				value: {},
-				configurable: true,
-			})
 
 			const runtime = detectRuntime()
 			const hasSupport = hasCryptoSupport()

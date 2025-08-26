@@ -8,7 +8,7 @@ import { generateRequestId } from '@/utils/crypto.js'
 import { safeStringify } from '@/utils/serialization.js'
 import { getCurrentTimestamp } from '@/utils/time.js'
 
-// No more node:crypto mock needed - using globalThis.crypto now
+// No more node:crypto mock needed - using crypto global now
 
 describe('generateRequestId', () => {
 	beforeEach(() => {
@@ -20,7 +20,7 @@ describe('generateRequestId', () => {
 		vi.unstubAllGlobals()
 	})
 
-	it('should generate a request ID with req_ prefix using globalThis.crypto', () => {
+	it('should generate a request ID with req_ prefix using crypto global', () => {
 		const requestId = generateRequestId()
 		// Should match UUID format (8 hex chars after req_)
 		expect(requestId).toMatch(/^req_[a-f0-9]{8}$/)
@@ -46,14 +46,14 @@ describe('generateRequestId', () => {
 
 		const requestId = generateRequestId()
 		expect(requestId).toBe('req_12345678')
-		expect(vi.mocked(globalThis.crypto.randomUUID)).toHaveBeenCalledOnce()
+		expect(vi.mocked(crypto.randomUUID)).toHaveBeenCalledOnce()
 	})
 
-	it('should work in Node.js environment with globalThis.crypto', () => {
+	it('should work in Node.js environment with crypto global', () => {
 		// Ensure Node.js environment
 		vi.stubGlobal('process', { versions: { node: '20.0.0' } })
 
-		// Mock globalThis.crypto (which exists in Node.js v20+)
+		// Mock crypto global (which exists in Node.js v20+)
 		const mockCrypto = {
 			randomUUID: vi
 				.fn()
@@ -93,14 +93,9 @@ describe('generateRequestId', () => {
 		vi.stubGlobal('crypto', undefined)
 
 		// Mock browser indicators
-		Object.defineProperty(globalThis, 'window', {
-			value: {},
-			configurable: true,
-		})
-		Object.defineProperty(globalThis, 'document', {
-			value: {},
-			configurable: true,
-		})
+		// Mock browser environment
+		vi.stubGlobal('window', {})
+		vi.stubGlobal('document', {})
 
 		expect(() => generateRequestId()).toThrow(
 			'Web Crypto API not available in browser environment',
