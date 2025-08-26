@@ -167,6 +167,40 @@ describe('parseLocation', () => {
 			line: 0,
 		})
 	})
+
+	it('should handle file path with no separators', () => {
+		const mockStack = `Error
+    at parseLocation (/path/to/location.ts:45:12)
+    at testFunction (simplefilename:10:5)
+    at Object.<anonymous> (/path/to/main.ts:25:8)`
+
+		vi.stubGlobal('Error', createMockError(mockStack))
+
+		const location = parseLocation(false)
+
+		// When there are no path separators, should use the full path as filename
+		expect(location).toEqual({
+			function: 'testFunction',
+			file: 'simplefilename',
+			line: 10,
+		})
+	})
+
+	it('should handle production fallback when parsing fails', () => {
+		// Mock Error constructor to throw when called
+		vi.stubGlobal(
+			'Error',
+			vi.fn().mockImplementation(() => {
+				throw new Error('Stack parsing failed')
+			}),
+		)
+
+		const location = parseLocation(true) // production mode
+
+		expect(location).toEqual({
+			function: 'unknown',
+		})
+	})
 })
 
 describe('detectEnvironment', () => {

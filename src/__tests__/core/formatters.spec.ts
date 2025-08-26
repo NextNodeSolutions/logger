@@ -149,6 +149,52 @@ describe('formatForDevelopment', () => {
 
 		expect(result).toContain('invalid-timestamp')
 	})
+
+	it('should handle scope color cache eviction when limit reached', () => {
+		// Create multiple entries with different scopes to fill cache
+		const scopes = Array.from({ length: 12 }, (_, i) => `Scope${i}`)
+
+		scopes.forEach(scope => {
+			const entry: LogEntry = { ...baseEntry, scope }
+			formatForDevelopment(entry) // This will trigger cache operations
+		})
+
+		// This should not throw and should handle cache eviction
+		const finalEntry: LogEntry = { ...baseEntry, scope: 'FinalScope' }
+		const result = formatForDevelopment(finalEntry)
+
+		expect(result).toContain('[FinalScope]')
+	})
+
+	it('should handle timestamp parsing error in formatTime', () => {
+		// Mock Date constructor to throw error
+		const originalDate = global.Date
+		vi.stubGlobal(
+			'Date',
+			class extends Date {
+				constructor(value: string | number | Date) {
+					if (
+						typeof value === 'string' &&
+						value === 'error-timestamp'
+					) {
+						throw new Error('Invalid date')
+					}
+					super(value as string)
+				}
+			},
+		)
+
+		const entry: LogEntry = {
+			...baseEntry,
+			timestamp: 'error-timestamp',
+		}
+		const result = formatForDevelopment(entry)
+
+		// Should fall back to original timestamp string
+		expect(result).toContain('error-timestamp')
+
+		vi.stubGlobal('Date', originalDate)
+	})
 })
 
 describe('formatForProduction', () => {

@@ -140,6 +140,25 @@ describe('safeStringify', () => {
 		// Note: Modern JSON.stringify might handle this gracefully, so we just check it doesn't throw
 		expect(typeof result).toBe('string')
 	})
+
+	it('should handle JSON.stringify throwing error and provide fallback message', () => {
+		// Mock JSON.stringify to always throw
+		const originalStringify = JSON.stringify
+		vi.stubGlobal('JSON', {
+			...JSON,
+			stringify: vi.fn().mockImplementation(() => {
+				throw new Error('Stringify failed')
+			}),
+		})
+
+		const result = safeStringify({ test: 'data' })
+
+		// Should return error message format
+		expect(result).toMatch(/\[Serialization Error: Stringify failed\]/)
+
+		// Restore original
+		vi.stubGlobal('JSON', { ...JSON, stringify: originalStringify })
+	})
 })
 
 describe('getCurrentTimestamp', () => {
