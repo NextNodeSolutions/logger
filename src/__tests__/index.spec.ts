@@ -13,6 +13,8 @@ import {
 	getCurrentTimestamp,
 	detectEnvironment,
 	parseLocation,
+	detectRuntime,
+	hasCryptoSupport,
 } from '../index.js'
 import {
 	createConsoleMocks,
@@ -54,6 +56,8 @@ describe('NextNode Logger Integration', () => {
 			expect(getCurrentTimestamp).toBeDefined()
 			expect(detectEnvironment).toBeDefined()
 			expect(parseLocation).toBeDefined()
+			expect(detectRuntime).toBeDefined()
+			expect(hasCryptoSupport).toBeDefined()
 		})
 	})
 

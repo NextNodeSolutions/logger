@@ -20,15 +20,18 @@ export const detectRuntime = (): RuntimeEnvironment => {
 	}
 
 	// Check for Web Worker environment
-	if (typeof globalThis !== 'undefined' && 'importScripts' in globalThis) {
+	if (
+		typeof globalThis !== 'undefined' &&
+		typeof globalThis.importScripts === 'function'
+	) {
 		return 'webworker'
 	}
 
 	// Check for Browser environment
 	if (
 		typeof globalThis !== 'undefined' &&
-		'window' in globalThis &&
-		'document' in globalThis
+		typeof globalThis.window === 'object' &&
+		typeof globalThis.document === 'object'
 	) {
 		return 'browser'
 	}
