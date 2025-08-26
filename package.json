@@ -1,6 +1,6 @@
 {
   "name": "@nextnode/logger",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "A lightweight, zero-dependency TypeScript logging library for NextNode projects with scope-based organization and environment-aware formatting",
   "keywords": [
     "development",
