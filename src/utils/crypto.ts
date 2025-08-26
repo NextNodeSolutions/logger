@@ -1,20 +1,22 @@
 /**
  * Cryptographic utilities for NextNode Logger
- * Zero dependencies, using only Node.js built-in modules
+ * Universal crypto support for Node.js and browser environments
  */
 
-import { randomUUID } from 'node:crypto'
+import { detectRuntime, hasCryptoSupport } from './environment.js'
 
 export const generateRequestId = (): string => {
-	try {
-		// Use Node.js built-in crypto.randomUUID for maximum compatibility
-		const uuid = randomUUID()
+	// Use modern Web Crypto API available in both Node.js v20+ and browsers
+	if (hasCryptoSupport()) {
+		const uuid = crypto.randomUUID()
 		// Create a shorter, more readable request ID
 		return `req_${uuid.slice(0, 8)}`
-	} catch {
-		// Fallback if crypto.randomUUID is not available (very unlikely in modern Node.js)
-		const timestamp = Date.now().toString(36)
-		const random = Math.random().toString(36).substring(2, 8)
-		return `req_${timestamp}${random}`
 	}
+
+	// This should not happen with proper environment support
+	const runtime = detectRuntime()
+	throw new Error(
+		`Web Crypto API not available in ${runtime} environment. ` +
+			`Please ensure you're using Node.js v20+ or a modern browser.`,
+	)
 }

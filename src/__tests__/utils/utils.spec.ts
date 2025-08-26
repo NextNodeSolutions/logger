@@ -2,43 +2,104 @@
  * Tests for NextNode Logger utilities
  */
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import { generateRequestId } from '@/utils/crypto.js'
 import { safeStringify } from '@/utils/serialization.js'
 import { getCurrentTimestamp } from '@/utils/time.js'
 
-// Mock the crypto module at the top level
-vi.mock('node:crypto', () => ({
-	randomUUID: vi.fn(),
-}))
+// No more node:crypto mock needed - using crypto global now
 
 describe('generateRequestId', () => {
-	it('should generate a request ID with req_ prefix', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		vi.unstubAllGlobals()
+	})
+
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	it('should generate a request ID with req_ prefix using crypto global', () => {
 		const requestId = generateRequestId()
-		// Should match either UUID format (8 hex chars) or fallback format (longer)
-		expect(requestId).toMatch(/^req_[a-z0-9]+$/)
-		expect(requestId.length).toBeGreaterThanOrEqual(12) // req_ + at least 8 chars
+		// Should match UUID format (8 hex chars after req_)
+		expect(requestId).toMatch(/^req_[a-f0-9]{8}$/)
+		expect(requestId.length).toBe(12) // req_ (4) + 8 hex chars
 	})
 
 	it('should generate unique request IDs', () => {
 		const id1 = generateRequestId()
 		const id2 = generateRequestId()
 		expect(id1).not.toBe(id2)
+		expect(id1).toMatch(/^req_[a-f0-9]{8}$/)
+		expect(id2).toMatch(/^req_[a-f0-9]{8}$/)
 	})
 
-	it('should fallback gracefully when crypto.randomUUID is not available', async () => {
-		const { randomUUID } = await import('node:crypto')
-		vi.mocked(randomUUID).mockImplementation(() => {
-			throw new Error('Not available')
+	it('should work in browser environment with Web Crypto API', () => {
+		// Mock browser environment with crypto support
+		vi.stubGlobal('process', undefined)
+		vi.stubGlobal('crypto', {
+			randomUUID: vi
+				.fn()
+				.mockReturnValue('12345678-abcd-efgh-ijkl-mnopqrstuvwx'),
 		})
 
 		const requestId = generateRequestId()
-		expect(requestId).toMatch(/^req_[a-z0-9]+$/)
-		expect(requestId.length).toBeGreaterThan(4)
-		
-		// Restore the mock
-		vi.mocked(randomUUID).mockRestore()
+		expect(requestId).toBe('req_12345678')
+		expect(vi.mocked(crypto.randomUUID)).toHaveBeenCalledOnce()
+	})
+
+	it('should work in Node.js environment with crypto global', () => {
+		// Ensure Node.js environment
+		vi.stubGlobal('process', { versions: { node: '20.0.0' } })
+
+		// Mock crypto global (which exists in Node.js v20+)
+		const mockCrypto = {
+			randomUUID: vi
+				.fn()
+				.mockReturnValue('abcdefgh-1234-5678-9012-abcdefghijkl'),
+		}
+		vi.stubGlobal('crypto', mockCrypto)
+
+		const requestId = generateRequestId()
+		expect(requestId).toBe('req_abcdefgh')
+		expect(mockCrypto.randomUUID).toHaveBeenCalledOnce()
+	})
+
+	it('should throw error when Web Crypto API is not available', () => {
+		// Mock environment without crypto support
+		vi.stubGlobal('crypto', undefined)
+
+		expect(() => generateRequestId()).toThrow(
+			"Web Crypto API not available in node environment. Please ensure you're using Node.js v20+ or a modern browser.",
+		)
+	})
+
+	it('should throw error when randomUUID is not available in crypto', () => {
+		// Mock crypto without randomUUID
+		vi.stubGlobal('crypto', {
+			subtle: {},
+			// randomUUID missing
+		})
+
+		expect(() => generateRequestId()).toThrow(
+			'Web Crypto API not available in node environment',
+		)
+	})
+
+	it('should provide environment-specific error messages', () => {
+		// Test browser environment error
+		vi.stubGlobal('process', undefined)
+		vi.stubGlobal('crypto', undefined)
+
+		// Mock browser indicators
+		// Mock browser environment
+		vi.stubGlobal('window', {})
+		vi.stubGlobal('document', {})
+
+		expect(() => generateRequestId()).toThrow(
+			'Web Crypto API not available in browser environment',
+		)
 	})
 })
 
@@ -140,6 +201,25 @@ describe('safeStringify', () => {
 		// Note: Modern JSON.stringify might handle this gracefully, so we just check it doesn't throw
 		expect(typeof result).toBe('string')
 	})
+
+	it('should handle JSON.stringify throwing error and provide fallback message', () => {
+		// Mock JSON.stringify to always throw
+		const originalStringify = JSON.stringify
+		vi.stubGlobal('JSON', {
+			...JSON,
+			stringify: vi.fn().mockImplementation(() => {
+				throw new Error('Stringify failed')
+			}),
+		})
+
+		const result = safeStringify({ test: 'data' })
+
+		// Should return error message format
+		expect(result).toMatch(/\[Serialization Error: Stringify failed\]/)
+
+		// Restore original
+		vi.stubGlobal('JSON', { ...JSON, stringify: originalStringify })
+	})
 })
 
 describe('getCurrentTimestamp', () => {
@@ -156,12 +236,14 @@ describe('getCurrentTimestamp', () => {
 		expect(date.getTime()).not.toBeNaN()
 	})
 
-	it('should return different timestamps when called at different times', async () => {
+	it('should return different timestamps when called at different times', () => {
+		vi.useFakeTimers()
+
 		const timestamp1 = getCurrentTimestamp()
-		// Wait a small amount to ensure different timestamps (2ms to be safe)
-		await new Promise(resolve => setTimeout(resolve, 2))
+		vi.advanceTimersByTime(1000) // Advance by 1 second
 		const timestamp2 = getCurrentTimestamp()
 
 		expect(timestamp1).not.toBe(timestamp2)
+		vi.useRealTimers()
 	})
 })

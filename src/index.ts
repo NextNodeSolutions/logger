@@ -16,6 +16,7 @@ export type {
 	LocationInfo,
 	ProductionLocationInfo,
 	Environment,
+	RuntimeEnvironment,
 } from './types.js'
 
 // Export utilities for advanced usage
@@ -23,3 +24,7 @@ export { generateRequestId } from './utils/crypto.js'
 export { safeStringify } from './utils/serialization.js'
 export { getCurrentTimestamp } from './utils/time.js'
 export { detectEnvironment, parseLocation } from './core/location.js'
+export {
+	detectRuntime,
+	hasCryptoSupport,
+} from './utils/environment.js'
