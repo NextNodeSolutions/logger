@@ -1,5 +1,11 @@
 # @nextnode/logger
 
+## 0.2.3
+
+### Patch Changes
+
+- [#8](https://github.com/NextNodeSolutions/logger/pull/8) [`a71b105`](https://github.com/NextNodeSolutions/logger/commit/a71b105237215b8d3032e3dacd5150f74f08a223) Thanks [@walid-mos](https://github.com/walid-mos)! - Fixed browser compatibility issues with TypeScript strict mode by replacing globalThis usage with direct global access (window, document, crypto, importScripts). Updated environment detection to use proper typeof checks and added DOM/WebWorker library types to TypeScript configuration.
+
 ## 0.2.2
 
 ### Patch Changes
