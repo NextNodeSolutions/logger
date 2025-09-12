@@ -1,5 +1,18 @@
 # @nextnode/logger
 
+## 0.2.4
+
+### Patch Changes
+
+- [#10](https://github.com/NextNodeSolutions/logger/pull/10) [`8cf2cec`](https://github.com/NextNodeSolutions/logger/commit/8cf2cec26c296f5755796a0f8df1c70e40eb0999) Thanks [@walid-mos](https://github.com/walid-mos)! - Update CI/CD workflows to use latest NextNodeSolutions/github-actions
+
+  - Modernized test.yml to use shared quality-checks workflow with comprehensive lint, typecheck, tests, build and coverage checks
+  - Replaced release.yml with version.yml using shared version-management workflow for better separation of concerns
+  - Added auto-publish.yml for automated publishing after version merges with provenance attestation
+  - Added manual-publish.yml recovery workflow with dry-run option
+  - Updated to Node.js 22 and maintained pnpm 10.11.0 across all workflows
+  - All workflows now leverage centralized shared actions for consistency and maintainability
+
 ## 0.2.3
 
 ### Patch Changes
