@@ -40,18 +40,31 @@ export interface LogEntry {
 	readonly object?: Omit<LogObject, 'scope'> | undefined
 }
 
+// Batch logging configuration
+export interface BatchConfig {
+	readonly enabled: boolean
+	readonly maxSize: number // Maximum number of logs to batch
+	readonly flushInterval: number // Milliseconds to wait before auto-flush
+	readonly maxDelay: number // Maximum delay before forced flush
+}
+
 // Logger configuration with strict typing
 export interface LoggerConfig {
 	readonly prefix?: string
 	readonly environment?: Environment
 	readonly includeLocation?: boolean
+	readonly batch?: Partial<BatchConfig>
 }
 
-// Logger interface with method signatures
+// Lazy evaluation support for expensive message computation
+export type LazyMessage = () => string
+
+// Logger interface with method signatures supporting lazy evaluation
 export interface Logger {
-	info(message: string, object?: LogObject): void
-	warn(message: string, object?: LogObject): void
-	error(message: string, object?: LogObject): void
+	info(message: string | LazyMessage, object?: LogObject): void
+	warn(message: string | LazyMessage, object?: LogObject): void
+	error(message: string | LazyMessage, object?: LogObject): void
+	flush(): void // Force flush any batched logs
 }
 
 // Type guards for runtime type checking
@@ -71,3 +84,6 @@ export const isRuntimeEnvironment = (
 ): value is RuntimeEnvironment =>
 	typeof value === 'string' &&
 	['node', 'browser', 'webworker', 'unknown'].includes(value)
+
+export const isLazyMessage = (message: unknown): message is LazyMessage =>
+	typeof message === 'function'

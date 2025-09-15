@@ -13,6 +13,8 @@ export type {
 	LogEntry,
 	LogLevel,
 	LoggerConfig,
+	LazyMessage,
+	BatchConfig,
 	LocationInfo,
 	ProductionLocationInfo,
 	Environment,
