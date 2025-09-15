@@ -8,6 +8,7 @@ import { generateRequestId } from '../utils/crypto.js'
 import { getCurrentTimestamp } from '../utils/time.js'
 import { formatLogEntry } from './formatters.js'
 import { isLazyMessage } from '../types.js'
+import { ConsoleTransport } from '../transports/console.js'
 
 import type {
 	Logger,
@@ -18,6 +19,7 @@ import type {
 	LazyMessage,
 	BatchConfig,
 	Environment,
+	Transport,
 } from '../types.js'
 
 // Console methods mapping for type safety
@@ -41,12 +43,20 @@ export class NextNodeLogger implements Logger {
 	private readonly prefix?: string | undefined
 	private readonly includeLocation: boolean
 	private readonly batchConfig: BatchConfig
+	private readonly transports: Transport[]
+	private readonly fallbackToConsole: boolean
 	private batchState: BatchState
 
 	constructor(config: LoggerConfig = {}) {
 		this.environment = config.environment ?? detectEnvironment()
 		this.prefix = config.prefix
 		this.includeLocation = config.includeLocation ?? true
+		this.fallbackToConsole = config.fallbackToConsole ?? true
+
+		// Setup transports - default to console if none provided
+		this.transports = config.transports ?? [
+			new ConsoleTransport({ environment: this.environment }),
+		]
 
 		// Default batch configuration
 		this.batchConfig = {
@@ -112,25 +122,61 @@ export class NextNodeLogger implements Logger {
 		}
 	}
 
+	private async writeToTransports(entry: LogEntry): Promise<void> {
+		const errors: Array<{ transport: string; error: Error }> = []
+
+		// Write to all transports
+		for (const transport of this.transports) {
+			try {
+				const result = transport.write(entry)
+				// Handle both sync and async transports
+				if (result instanceof Promise) {
+					await result
+				}
+			} catch (error) {
+				errors.push({
+					transport: transport.name,
+					error:
+						error instanceof Error
+							? error
+							: new Error(String(error)),
+				})
+			}
+		}
+
+		// If all transports failed and fallback is enabled, use console
+		if (
+			errors.length === this.transports.length &&
+			this.fallbackToConsole
+		) {
+			const method = CONSOLE_METHODS[entry.level] as ConsoleMethod
+			const formattedMessage = formatLogEntry(entry, this.environment)
+			console[method](formattedMessage)
+		}
+	}
+
+	// Legacy method for immediate console output (used in immediate mode)
 	private output(level: LogLevel, formattedMessage: string): void {
 		const method = CONSOLE_METHODS[level] as ConsoleMethod
 		console[method](formattedMessage)
 	}
 
-	private flushBatch(): void {
+	private async flushBatch(): Promise<void> {
 		if (this.batchState.buffer.length === 0) return
 
-		// Process all buffered entries
-		for (const entry of this.batchState.buffer) {
-			const formattedMessage = formatLogEntry(entry, this.environment)
-			this.output(entry.level, formattedMessage)
-		}
+		// Process all buffered entries using transports
+		const entries = [...this.batchState.buffer]
 
-		// Reset batch state
+		// Reset batch state first to avoid race conditions
 		this.batchState = {
 			buffer: [],
 			timer: null,
 			firstEntryTime: null,
+		}
+
+		// Write all entries to transports
+		for (const entry of entries) {
+			await this.writeToTransports(entry)
 		}
 	}
 
@@ -138,7 +184,9 @@ export class NextNodeLogger implements Logger {
 		if (this.batchState.timer) return // Already scheduled
 
 		const timer = setTimeout(() => {
-			this.flushBatch()
+			this.flushBatch().catch(() => {
+				// Swallow transport errors to prevent infinite loops
+			})
 		}, this.batchConfig.flushInterval)
 
 		this.batchState = {
@@ -174,9 +222,10 @@ export class NextNodeLogger implements Logger {
 		const entry = this.createLogEntry(level, message, object)
 
 		if (!this.batchConfig.enabled) {
-			// Immediate logging (current behavior)
-			const formattedMessage = formatLogEntry(entry, this.environment)
-			this.output(level, formattedMessage)
+			// Immediate logging using transports
+			this.writeToTransports(entry).catch(() => {
+				// Swallow transport errors to prevent infinite loops
+			})
 			return
 		}
 
@@ -196,7 +245,9 @@ export class NextNodeLogger implements Logger {
 			if (this.batchState.timer) {
 				clearTimeout(this.batchState.timer as NodeJS.Timeout)
 			}
-			this.flushBatch()
+			this.flushBatch().catch(() => {
+				// Swallow transport errors to prevent infinite loops
+			})
 		} else {
 			// Schedule flush if not already scheduled
 			this.scheduleBatchFlush()
@@ -219,7 +270,25 @@ export class NextNodeLogger implements Logger {
 		if (this.batchState.timer) {
 			clearTimeout(this.batchState.timer as NodeJS.Timeout)
 		}
-		this.flushBatch()
+		this.flushBatch().catch(() => {
+			// Swallow transport errors to prevent infinite loops
+		})
+
+		// Also flush all transports that support it
+		for (const transport of this.transports) {
+			if (transport.flush) {
+				try {
+					const result = transport.flush()
+					if (result instanceof Promise) {
+						result.catch(() => {
+							// Swallow transport errors
+						})
+					}
+				} catch {
+					// Swallow transport errors
+				}
+			}
+		}
 	}
 }
 

@@ -15,6 +15,7 @@ export type {
 	LoggerConfig,
 	LazyMessage,
 	BatchConfig,
+	Transport,
 	LocationInfo,
 	ProductionLocationInfo,
 	Environment,
@@ -30,3 +31,22 @@ export {
 	detectRuntime,
 	hasCryptoSupport,
 } from './utils/environment.js'
+
+// Export transport system
+export type {
+	TransportConfig,
+	TransportError,
+} from './transports/types.js'
+
+export {
+	ConsoleTransport,
+	FileTransport,
+	HTTPTransport,
+	createDataDogTransport,
+} from './transports/index.js'
+
+export type {
+	ConsoleTransportConfig,
+	FileTransportConfig,
+	HTTPTransportConfig,
+} from './transports/index.js'

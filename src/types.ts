@@ -48,12 +48,22 @@ export interface BatchConfig {
 	readonly maxDelay: number // Maximum delay before forced flush
 }
 
+// Forward declaration for Transport type
+export interface Transport {
+	readonly name: string
+	write(entry: LogEntry): void | Promise<void>
+	flush?(): void | Promise<void>
+	close?(): void | Promise<void>
+}
+
 // Logger configuration with strict typing
 export interface LoggerConfig {
 	readonly prefix?: string
 	readonly environment?: Environment
 	readonly includeLocation?: boolean
 	readonly batch?: Partial<BatchConfig>
+	readonly transports?: Transport[]
+	readonly fallbackToConsole?: boolean // Fallback to console if all transports fail
 }
 
 // Lazy evaluation support for expensive message computation
