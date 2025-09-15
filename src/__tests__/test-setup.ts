@@ -32,11 +32,11 @@ export const restoreConsoleMocks = (mocks: ConsoleMocks): void => {
 	mocks.error.mockRestore()
 }
 
-
 /**
  * Mock Error class for stack trace testing
  */
-export const createMockError = (stack: string): ErrorConstructor => class MockError extends Error {
+export const createMockError = (stack: string): ErrorConstructor =>
+	class MockError extends Error {
 		override stack = stack
 	} as ErrorConstructor
 
@@ -48,26 +48,25 @@ export const MOCK_STACKS = {
     at parseLocation (/path/to/location.ts:45:12)
     at testFunction (/path/to/test.ts:10:5)
     at Object.<anonymous> (/path/to/main.ts:25:8)`,
-	
+
 	anonymous: `Error
     at parseLocation (/path/to/location.ts:45:12)
     at <anonymous> (/path/to/test.ts:10:5)`,
-	
+
 	objectMethod: `Error
     at parseLocation (/path/to/location.ts:45:12)
     at Object.methodName (/path/to/test.ts:15:3)`,
-	
+
 	withNodeModules: `Error
     at parseLocation (/path/to/location.ts:45:12)
     at someLibFunction (/path/to/node_modules/lib/index.js:100:5)
     at userFunction (/path/to/app.ts:30:2)`,
-	
+
 	windows: `Error
     at parseLocation (C:\\path\\to\\location.ts:45:12)
     at testFunction (C:\\path\\to\\test.ts:10:5)`,
-	
-	invalid: 'Invalid stack trace format',
-	
-	empty: ''
-}
 
+	invalid: 'Invalid stack trace format',
+
+	empty: '',
+}
