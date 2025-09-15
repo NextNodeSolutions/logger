@@ -63,7 +63,10 @@ describe('NextNode Logger Integration', () => {
 
 	describe('Real-world usage scenarios', () => {
 		it('should handle authentication logging scenario', () => {
-			const authLogger = createLogger({ prefix: '[AUTH]' })
+			const authLogger = createLogger({
+				prefix: '[AUTH]',
+				environment: 'development',
+			})
 
 			// Login attempt
 			authLogger.info('Login attempt', {
@@ -132,7 +135,10 @@ describe('NextNode Logger Integration', () => {
 		})
 
 		it('should handle database operation logging scenario', () => {
-			const dbLogger = createLogger({ prefix: '[DB]' })
+			const dbLogger = createLogger({
+				prefix: '[DB]',
+				environment: 'development',
+			})
 
 			// Query execution
 			dbLogger.info('Query executed', {
@@ -373,17 +379,18 @@ describe('NextNode Logger Integration', () => {
 		})
 
 		it('should handle empty and minimal objects', () => {
+			const devLogger = createLogger({ environment: 'development' })
 			// Empty object
-			logger.info('Empty object', { details: {} })
+			devLogger.info('Empty object', { details: {} })
 
 			// Only scope
-			logger.info('Only scope', { scope: 'MinimalTest' })
+			devLogger.info('Only scope', { scope: 'MinimalTest' })
 
 			// Only status
-			logger.info('Only status', { status: 200 })
+			devLogger.info('Only status', { status: 200 })
 
 			// Only details
-			logger.info('Only details', { details: 'simple string' })
+			devLogger.info('Only details', { details: 'simple string' })
 
 			expect(consoleMocks.log).toHaveBeenCalledTimes(4)
 

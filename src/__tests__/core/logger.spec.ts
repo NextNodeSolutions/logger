@@ -276,7 +276,9 @@ describe('NextNodeLogger', () => {
 
 	describe('location handling', () => {
 		it('should include location by default', () => {
-			const testLogger = new NextNodeLogger()
+			const testLogger = new NextNodeLogger({
+				environment: 'development',
+			})
 			testLogger.info('Test message')
 
 			expect(consoleMocks.log).toHaveBeenCalledOnce()
