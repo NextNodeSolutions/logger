@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { NextNodeLogger, createLogger, logger } from '@/core/logger.js'
+import { NextNodeLogger, createLogger, logger } from '@/logger.js'
 
 import {
 	createConsoleMocks,
@@ -39,6 +39,24 @@ describe('NextNodeLogger', () => {
 			}
 			const testLogger = new NextNodeLogger(config)
 			expect(testLogger).toBeDefined()
+		})
+	})
+
+	describe('debug logging', () => {
+		it('should log debug message', () => {
+			const testLogger = new NextNodeLogger()
+			testLogger.debug('Test debug message')
+
+			expect(consoleMocks.debug).toHaveBeenCalledWith(
+				expect.stringContaining('Test debug message'),
+			)
+		})
+
+		it('should not log debug when minLevel is info', () => {
+			const testLogger = new NextNodeLogger({ minLevel: 'info' })
+			testLogger.debug('This should not appear')
+
+			expect(consoleMocks.debug).not.toHaveBeenCalled()
 		})
 	})
 
@@ -153,6 +171,52 @@ describe('NextNodeLogger', () => {
 			expect(consoleMocks.error).toHaveBeenCalledWith(
 				expect.stringContaining('Connection timeout'),
 			)
+		})
+	})
+
+	describe('log level filtering', () => {
+		it('should filter logs below minLevel', () => {
+			const testLogger = new NextNodeLogger({ minLevel: 'warn' })
+
+			testLogger.debug('Debug message')
+			testLogger.info('Info message')
+			testLogger.warn('Warn message')
+			testLogger.error('Error message')
+
+			expect(consoleMocks.debug).not.toHaveBeenCalled()
+			expect(consoleMocks.log).not.toHaveBeenCalled()
+			expect(consoleMocks.warn).toHaveBeenCalledOnce()
+			expect(consoleMocks.error).toHaveBeenCalledOnce()
+		})
+
+		it('should only log error when minLevel is error', () => {
+			const testLogger = new NextNodeLogger({ minLevel: 'error' })
+
+			testLogger.debug('Debug')
+			testLogger.info('Info')
+			testLogger.warn('Warn')
+			testLogger.error('Error')
+
+			expect(consoleMocks.debug).not.toHaveBeenCalled()
+			expect(consoleMocks.log).not.toHaveBeenCalled()
+			expect(consoleMocks.warn).not.toHaveBeenCalled()
+			expect(consoleMocks.error).toHaveBeenCalledOnce()
+		})
+	})
+
+	describe('silent mode', () => {
+		it('should not log anything when silent is true', () => {
+			const testLogger = new NextNodeLogger({ silent: true })
+
+			testLogger.debug('Debug')
+			testLogger.info('Info')
+			testLogger.warn('Warn')
+			testLogger.error('Error')
+
+			expect(consoleMocks.debug).not.toHaveBeenCalled()
+			expect(consoleMocks.log).not.toHaveBeenCalled()
+			expect(consoleMocks.warn).not.toHaveBeenCalled()
+			expect(consoleMocks.error).not.toHaveBeenCalled()
 		})
 	})
 
@@ -373,6 +437,7 @@ describe('createLogger', () => {
 	it('should create a new logger instance', () => {
 		const testLogger = createLogger()
 		expect(testLogger).toBeDefined()
+		expect(typeof testLogger.debug).toBe('function')
 		expect(typeof testLogger.info).toBe('function')
 		expect(typeof testLogger.warn).toBe('function')
 		expect(typeof testLogger.error).toBe('function')
@@ -397,6 +462,7 @@ describe('createLogger', () => {
 describe('default logger', () => {
 	it('should export a default logger instance', () => {
 		expect(logger).toBeDefined()
+		expect(typeof logger.debug).toBe('function')
 		expect(typeof logger.info).toBe('function')
 		expect(typeof logger.warn).toBe('function')
 		expect(typeof logger.error).toBe('function')
