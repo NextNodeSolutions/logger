@@ -39,14 +39,15 @@ export interface LogObject {
 }
 
 // Log entry with conditional types for better type safety
+// Note: Using `| undefined` explicitly for exactOptionalPropertyTypes compatibility
 export interface LogEntry {
 	readonly level: LogLevel
 	readonly message: string
 	readonly timestamp: string
 	readonly location: DevelopmentLocationInfo | ProductionLocationInfo
 	readonly requestId: string
-	readonly scope?: string
-	readonly object?: Omit<LogObject, 'scope'>
+	readonly scope?: string | undefined
+	readonly object?: Omit<LogObject, 'scope'> | undefined
 }
 
 // Transport interface for pluggable log destinations

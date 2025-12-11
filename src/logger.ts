@@ -19,7 +19,6 @@ import type {
 	Transport,
 } from './types.js'
 
-
 /**
  * NextNode Logger - A lightweight, zero-dependency TypeScript logger
  */
@@ -33,7 +32,9 @@ export class NextNodeLogger implements Logger {
 
 	constructor(config: LoggerConfig = {}) {
 		this.environment = config.environment ?? detectEnvironment()
-		this.prefix = config.prefix
+		if (config.prefix !== undefined) {
+			this.prefix = config.prefix
+		}
 		this.includeLocation = config.includeLocation ?? true
 		this.minLevel = config.minLevel ?? 'debug'
 		this.silent = config.silent ?? false
@@ -123,8 +124,11 @@ export class NextNodeLogger implements Logger {
 	 */
 	async dispose(): Promise<void> {
 		const disposals = this.transports
-			.filter(t => 'dispose' in t && typeof t.dispose === 'function')
-			.map(t => t.dispose!())
+			.filter(
+				(t): t is Transport & { dispose(): Promise<void> } =>
+					'dispose' in t && typeof t.dispose === 'function',
+			)
+			.map(t => t.dispose())
 
 		await Promise.all(disposals)
 	}

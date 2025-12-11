@@ -159,7 +159,7 @@ export const createNoopLogger = (): Logger => ({
  */
 interface MockFn {
 	(message: string, object?: LogObject): void
-	mock: { calls: Array<[string, LogObject?]> }
+	mock: { calls: Array<[string, (LogObject | undefined)?]> }
 	mockClear: () => void
 }
 
@@ -176,7 +176,7 @@ export interface MockLogger extends Logger {
 
 // Helper to create a mock function that works without vitest/jest
 const createMockFn = (): MockFn => {
-	const calls: Array<[string, LogObject?]> = []
+	const calls: Array<[string, (LogObject | undefined)?]> = []
 	const fn = (message: string, object?: LogObject): void => {
 		calls.push([message, object])
 	}

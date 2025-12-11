@@ -101,7 +101,10 @@ const formatObjectDetails = (object: LogEntry['object']): string[] => {
 	// Format all properties of the object
 	const entries = Object.entries(object)
 	for (let i = 0; i < entries.length; i++) {
-		const [key, value] = entries[i]
+		const entry = entries[i]
+		if (!entry) continue
+
+		const [key, value] = entry
 		if (value === undefined) continue
 
 		const isLast = i === entries.length - 1
