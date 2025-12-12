@@ -78,10 +78,11 @@ export class ConsoleTransport implements Transport {
 		// Auto-detect based on runtime
 		if (this.runtime === 'browser' || this.runtime === 'webworker') {
 			this.logBrowser(entry, method)
-		} else {
-			// Node.js or unknown - use ANSI
-			console[method](formatForNode(entry))
+			return
 		}
+
+		// Node.js or unknown - use ANSI
+		console[method](formatForNode(entry))
 	}
 
 	private logBrowser(
