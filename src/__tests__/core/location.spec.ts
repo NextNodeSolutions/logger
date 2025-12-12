@@ -201,6 +201,61 @@ describe('parseLocation', () => {
 			function: 'unknown',
 		})
 	})
+
+	describe('ReDoS Prevention', () => {
+		it('should handle extremely long stack lines safely', () => {
+			// Create a stack line that could cause ReDoS with unprotected regex
+			const longString = 'a'.repeat(10000)
+			const maliciousStack = `Error
+    at ${longString} (/path/to/file.ts:10:5)
+    at normalFunction (/path/to/app.ts:20:3)`
+
+			vi.stubGlobal('Error', createMockError(maliciousStack))
+
+			const startTime = Date.now()
+			const location = parseLocation(false)
+			const duration = Date.now() - startTime
+
+			// Should complete quickly (under 100ms) due to line truncation
+			expect(duration).toBeLessThan(100)
+
+			// Should still return a valid location (may be unknown due to truncation)
+			expect(location).toHaveProperty('function')
+		})
+
+		it('should truncate long lines and still parse subsequent lines', () => {
+			// First line is very long, second line is normal
+			const longLine = 'at ' + 'x'.repeat(1000) + ' (/some/path:1:1)'
+			const normalLine = 'at userFunction (/path/to/app.ts:30:2)'
+			const mockStack = `Error
+    ${longLine}
+    ${normalLine}`
+
+			vi.stubGlobal('Error', createMockError(mockStack))
+
+			const location = parseLocation(false)
+
+			// Should fall through to normal line after long line fails
+			expect(location.function).toBeDefined()
+		})
+
+		it('should not hang on pathological regex input', () => {
+			// Pattern that could cause catastrophic backtracking in unprotected regex
+			const pathological = 'at ' + 'a '.repeat(500) + '('
+			const mockStack = `Error
+    ${pathological}
+    at safeFunction (/path/to/app.ts:10:5)`
+
+			vi.stubGlobal('Error', createMockError(mockStack))
+
+			const startTime = Date.now()
+			parseLocation(false)
+			const duration = Date.now() - startTime
+
+			// Must complete in reasonable time
+			expect(duration).toBeLessThan(100)
+		})
+	})
 })
 
 describe('detectEnvironment', () => {

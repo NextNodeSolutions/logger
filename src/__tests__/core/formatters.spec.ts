@@ -308,3 +308,118 @@ describe('formatAsJsonPretty', () => {
 		expect(() => JSON.parse(result)).not.toThrow()
 	})
 })
+
+describe('JSON Formatter Security', () => {
+	let mockDate: Date
+	let baseEntry: LogEntry
+
+	beforeEach(() => {
+		mockDate = new Date('2024-08-21T10:30:15.123Z')
+		vi.setSystemTime(mockDate)
+
+		baseEntry = {
+			level: 'info',
+			message: 'Test message',
+			timestamp: mockDate.toISOString(),
+			location: { function: 'testFunction' },
+			requestId: 'req_abc12345',
+		}
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
+	describe('Prototype Pollution Prevention', () => {
+		it('should filter out __proto__ key from object', () => {
+			const entry: LogEntry = {
+				...baseEntry,
+				object: {
+					normalKey: 'value',
+					__proto__: { polluted: true },
+				},
+			}
+			const result = formatAsJson(entry)
+			const parsed = JSON.parse(result)
+
+			expect(parsed.normalKey).toBe('value')
+			// Check that __proto__ is not an own property of the parsed object
+			expect(
+				Object.prototype.hasOwnProperty.call(parsed, '__proto__'),
+			).toBe(false)
+		})
+
+		it('should filter out constructor key from object', () => {
+			const entry: LogEntry = {
+				...baseEntry,
+				object: {
+					normalKey: 'value',
+					constructor: { polluted: true },
+				},
+			}
+			const result = formatAsJson(entry)
+			const parsed = JSON.parse(result)
+
+			expect(parsed.normalKey).toBe('value')
+			expect(parsed).not.toHaveProperty('constructor')
+		})
+
+		it('should filter out prototype key from object', () => {
+			const entry: LogEntry = {
+				...baseEntry,
+				object: {
+					normalKey: 'value',
+					prototype: { polluted: true },
+				},
+			}
+			const result = formatAsJson(entry)
+			const parsed = JSON.parse(result)
+
+			expect(parsed.normalKey).toBe('value')
+			expect(parsed).not.toHaveProperty('prototype')
+		})
+
+		it('should allow normal keys while filtering dangerous ones', () => {
+			const entry: LogEntry = {
+				...baseEntry,
+				object: {
+					status: 200,
+					userId: 123,
+					__proto__: { evil: true },
+					constructor: { evil: true },
+					prototype: { evil: true },
+					data: { nested: 'value' },
+				},
+			}
+			const result = formatAsJson(entry)
+			const parsed = JSON.parse(result)
+
+			// Normal keys should be present
+			expect(parsed.status).toBe(200)
+			expect(parsed.userId).toBe(123)
+			expect(parsed.data).toEqual({ nested: 'value' })
+
+			// Dangerous keys should be filtered
+			expect(Object.keys(parsed)).not.toContain('__proto__')
+			expect(Object.keys(parsed)).not.toContain('constructor')
+			expect(Object.keys(parsed)).not.toContain('prototype')
+		})
+
+		it('should apply same filtering in formatAsJsonPretty', () => {
+			const entry: LogEntry = {
+				...baseEntry,
+				object: {
+					normalKey: 'value',
+					__proto__: { polluted: true },
+					constructor: { polluted: true },
+				},
+			}
+			const result = formatAsJsonPretty(entry)
+			const parsed = JSON.parse(result)
+
+			expect(parsed.normalKey).toBe('value')
+			expect(Object.keys(parsed)).not.toContain('__proto__')
+			expect(Object.keys(parsed)).not.toContain('constructor')
+		})
+	})
+})

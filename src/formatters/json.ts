@@ -5,6 +5,12 @@
 
 import type { LogEntry } from '../types.js'
 
+/**
+ * Keys that are filtered out during object flattening to prevent
+ * prototype pollution attacks.
+ */
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
 export interface JsonLogOutput {
 	level: string
 	message: string
@@ -43,9 +49,10 @@ export const formatAsJson = (entry: LogEntry): string => {
 	}
 
 	// Flatten object properties into root for easier querying
+	// Filter out dangerous keys to prevent prototype pollution
 	if (object) {
 		for (const [key, value] of Object.entries(object)) {
-			if (value !== undefined) {
+			if (value !== undefined && !DANGEROUS_KEYS.has(key)) {
 				output[key] = value
 			}
 		}
@@ -74,9 +81,10 @@ export const formatAsJsonPretty = (entry: LogEntry): string => {
 		output.scope = scope
 	}
 
+	// Filter out dangerous keys to prevent prototype pollution
 	if (object) {
 		for (const [key, value] of Object.entries(object)) {
-			if (value !== undefined) {
+			if (value !== undefined && !DANGEROUS_KEYS.has(key)) {
 				output[key] = value
 			}
 		}

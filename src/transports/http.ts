@@ -59,6 +59,16 @@ const DEFAULT_FLUSH_INTERVAL = 5000
 const DEFAULT_TIMEOUT = 10000
 const DEFAULT_MAX_RETRIES = 3
 
+/**
+ * Headers that cannot be overridden by user configuration.
+ * These are either security-sensitive or managed by the transport.
+ */
+const RESTRICTED_HEADERS = new Set([
+	'host',
+	'content-length',
+	'transfer-encoding',
+])
+
 export class HttpTransport implements Transport {
 	private readonly config: Required<
 		Pick<
@@ -77,6 +87,10 @@ export class HttpTransport implements Transport {
 	private isFlushing = false
 
 	constructor(config: HttpTransportConfig) {
+		// Validate configuration before storing
+		this.validateEndpoint(config.endpoint)
+		this.validateHeaders(config.headers)
+
 		this.config = {
 			...config,
 			batchSize: config.batchSize ?? DEFAULT_BATCH_SIZE,
@@ -87,6 +101,41 @@ export class HttpTransport implements Transport {
 
 		// Start flush interval timer
 		this.startFlushTimer()
+	}
+
+	/**
+	 * Validates that the endpoint is a valid HTTP or HTTPS URL.
+	 * Prevents SSRF attacks by rejecting non-HTTP protocols.
+	 */
+	private validateEndpoint(endpoint: string): void {
+		let url: URL
+		try {
+			url = new URL(endpoint)
+		} catch {
+			throw new Error(`Invalid endpoint URL: ${endpoint}`)
+		}
+
+		if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+			throw new Error(
+				`Invalid protocol "${url.protocol}". Only http: and https: are allowed`,
+			)
+		}
+	}
+
+	/**
+	 * Validates that custom headers don't include restricted headers.
+	 * Prevents header injection attacks.
+	 */
+	private validateHeaders(headers?: Record<string, string>): void {
+		if (!headers) return
+
+		for (const key of Object.keys(headers)) {
+			if (RESTRICTED_HEADERS.has(key.toLowerCase())) {
+				throw new Error(
+					`Header "${key}" is restricted and cannot be overridden`,
+				)
+			}
+		}
 	}
 
 	log(entry: LogEntry): void {
