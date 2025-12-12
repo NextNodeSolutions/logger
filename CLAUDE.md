@@ -35,16 +35,23 @@ pnpm changeset:publish  # Publish to npm registry
 ## Architecture
 
 ### Library Structure
-- **Entry Point**: `src/index.ts` - exports all public API
-- **Core Modules**: 
-  - `core/logger.ts` - Main logger implementation and factory
-  - `core/formatters.ts` - Environment-specific log formatting
-  - `core/location.ts` - Call location tracking and parsing
-- **Utilities**: 
-  - `utils/crypto.ts` - Request ID generation
-  - `utils/serialization.ts` - Safe JSON stringification
-  - `utils/time.ts` - Timestamp utilities
-- **Types**: `types.ts` - Complete TypeScript type definitions
+- **Entry Point**: `src/logger.ts` - exports all public API
+- **Formatters**:
+  - `src/formatters/console-node.ts` - Node.js console formatting
+  - `src/formatters/console-browser.ts` - Browser console formatting
+  - `src/formatters/json.ts` - JSON output formatting
+- **Transports**:
+  - `src/transports/console.ts` - Console transport
+  - `src/transports/http.ts` - HTTP transport for remote logging
+  - `src/transports/transport.ts` - Base transport interface
+- **Utilities**:
+  - `src/utils/crypto.ts` - Request ID generation
+  - `src/utils/serialization.ts` - Safe JSON stringification
+  - `src/utils/time.ts` - Timestamp utilities
+  - `src/utils/location.ts` - Call location tracking and parsing
+  - `src/utils/environment.ts` - Runtime environment detection
+- **Testing**: `src/testing/test-utils.ts` - Spy, noop, and mock loggers
+- **Types**: `src/types.ts` - Complete TypeScript type definitions
 - **Build Output**: ESM-only distribution to `dist/`
 
 ### TypeScript Configuration
@@ -68,7 +75,7 @@ pnpm changeset:publish  # Publish to npm registry
 ## Library Features
 
 ### Core Logging Functionality
-- **Multiple Log Levels**: `info`, `warn`, `error` with environment-aware filtering
+- **Multiple Log Levels**: `debug`, `info`, `warn`, `error` with environment-aware filtering
 - **Scoped Logging**: Organize logs by scope/module for better debugging
 - **Request Tracking**: Automatic request ID generation for distributed tracing
 - **Location Tracking**: Automatic call site detection (file, function, line)
@@ -86,10 +93,10 @@ import { logger, createLogger } from '@nextnode/logger'
 
 // Default logger
 logger.info('Hello world')
-logger.warn('Something might be wrong', { userId })
-logger.error('Something went wrong', { error, userId })
+logger.warn('Something might be wrong', { details: { userId } })
+logger.error('Something went wrong', { scope: 'api', details: { error, userId } })
 
-// Scoped logger
-const apiLogger = createLogger('api')
-apiLogger.info('Request received', { method: 'POST', path: '/users' })
+// Custom logger with prefix
+const apiLogger = createLogger({ prefix: '[API]', minLevel: 'info' })
+apiLogger.info('Request received', { scope: 'users', details: { method: 'POST', path: '/users' } })
 ```
