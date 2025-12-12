@@ -1,15 +1,17 @@
 /**
- * Formatters for NextNode Logger
- * Environment-aware formatting with colorized development output and structured JSON for production
+ * Node.js console formatter for NextNode Logger
+ * Uses ANSI escape codes for colorized terminal output
  */
 
 import { safeStringify } from '../utils/serialization.js'
 import { isDevelopmentLocation } from '../types.js'
 
-import type { LogEntry, LogLevel, Environment } from '../types.js'
+import type { LogEntry, LogLevel } from '../types.js'
 
 const COLORS = {
 	reset: '\x1b[0m',
+	bold: '\x1b[1m',
+	dim: '\x1b[2m',
 	red: '\x1b[31m',
 	green: '\x1b[32m',
 	yellow: '\x1b[33m',
@@ -21,12 +23,14 @@ const COLORS = {
 } as const
 
 const LOG_LEVEL_COLORS: Record<LogLevel, string> = {
+	debug: COLORS.gray,
 	info: COLORS.blue,
 	warn: COLORS.yellow,
 	error: COLORS.red,
 } as const
 
 const LOG_LEVEL_ICONS: Record<LogLevel, string> = {
+	debug: '🔍',
 	info: '🔵',
 	warn: '⚠️ ',
 	error: '🔴',
@@ -40,7 +44,7 @@ const SCOPE_COLORS = [
 	COLORS.blue,
 ] as const
 
-// Use LRU-like cache with max size to prevent memory leaks
+// LRU-like cache with max size to prevent memory leaks
 const MAX_SCOPE_CACHE_SIZE = 100
 let scopeColorIndex = 0
 const scopeColorMap = new Map<string, string>()
@@ -51,7 +55,6 @@ const getScopeColor = (scope: string): string => {
 	if (!color) {
 		// Implement cache eviction when size limit reached
 		if (scopeColorMap.size >= MAX_SCOPE_CACHE_SIZE) {
-			// Remove oldest entry (first in map)
 			const firstKey = scopeColorMap.keys().next().value
 			if (firstKey) scopeColorMap.delete(firstKey)
 		}
@@ -71,7 +74,6 @@ const formatTime = (timestamp: string): string => {
 		if (Number.isNaN(date.getTime())) {
 			return timestamp
 		}
-		// Use UTC time and format as HH:MM:SS
 		const hours = date.getUTCHours().toString().padStart(2, '0')
 		const minutes = date.getUTCMinutes().toString().padStart(2, '0')
 		const seconds = date.getUTCSeconds().toString().padStart(2, '0')
@@ -88,47 +90,54 @@ const formatLocation = (location: LogEntry['location']): string => {
 	return location.function
 }
 
-// Helper to build colored string segments
 const colorize = (text: string, color: string): string =>
 	`${color}${text}${COLORS.reset}`
 
-// Helper to format object details with proper indentation
 const formatObjectDetails = (object: LogEntry['object']): string[] => {
 	const lines: string[] = []
 
 	if (!object) return lines
 
-	if (object.status !== undefined) {
-		lines.push(`   └─ status: ${object.status}`)
-	}
+	// Format all properties of the object
+	const entries = Object.entries(object)
+	for (let i = 0; i < entries.length; i++) {
+		const entry = entries[i]
+		if (!entry) continue
 
-	if (object.details !== undefined) {
-		const detailsStr = safeStringify(object.details)
-		if (detailsStr.includes('\n')) {
-			// Multi-line details
-			lines.push(`   └─ details:`)
-			detailsStr.split('\n').forEach(line => {
-				lines.push(`      ${line}`)
-			})
+		const [key, value] = entry
+		if (value === undefined) continue
+
+		const isLast = i === entries.length - 1
+		const prefix = isLast ? '└─' : '├─'
+		const valueStr =
+			typeof value === 'object' ? safeStringify(value) : String(value)
+
+		if (valueStr.includes('\n')) {
+			lines.push(colorize(`   ${prefix} ${key}:`, COLORS.gray))
+			for (const line of valueStr.split('\n')) {
+				lines.push(colorize(`      ${line}`, COLORS.gray))
+			}
 		} else {
-			// Single line details
-			lines.push(`   └─ details: ${detailsStr}`)
+			lines.push(
+				colorize(`   ${prefix} ${key}: ${valueStr}`, COLORS.gray),
+			)
 		}
 	}
 
 	return lines
 }
 
-export const formatForDevelopment = (entry: LogEntry): string => {
+export const formatForNode = (entry: LogEntry): string => {
 	const { level, message, timestamp, location, requestId, scope, object } =
 		entry
 
-	// Build log components using string builder pattern for better performance
 	const components: string[] = []
 
 	// Icon and level
 	components.push(LOG_LEVEL_ICONS[level])
-	components.push(colorize(level.toUpperCase(), LOG_LEVEL_COLORS[level]))
+	components.push(
+		colorize(level.toUpperCase().padEnd(5), LOG_LEVEL_COLORS[level]),
+	)
 
 	// Scope if present
 	if (scope) {
@@ -141,12 +150,11 @@ export const formatForDevelopment = (entry: LogEntry): string => {
 	// Message
 	components.push(message)
 
-	// Location and request ID
+	// Location and request ID (dimmed)
 	components.push(
-		colorize(`(${formatLocation(location)}) [${requestId}]`, COLORS.gray),
+		colorize(`(${formatLocation(location)}) [${requestId}]`, COLORS.dim),
 	)
 
-	// Combine main line
 	const lines = [components.join(' ')]
 
 	// Add object details if present
@@ -155,30 +163,14 @@ export const formatForDevelopment = (entry: LogEntry): string => {
 	return lines.join('\n')
 }
 
-export const formatForProduction = (entry: LogEntry): string => {
-	const { level, message, timestamp, location, requestId, scope, object } =
-		entry
-
-	// Build production entry object conditionally to avoid undefined values
-	const productionEntry: Record<string, unknown> = {
-		level,
-		message,
-		timestamp,
-		location,
-		requestId,
-	}
-
-	// Only add optional fields if they have values
-	if (scope) productionEntry.scope = scope
-	if (object) productionEntry.object = object
-
-	return JSON.stringify(productionEntry)
+// Export for testing
+export const __testing__ = {
+	getScopeColor,
+	formatTime,
+	formatLocation,
+	formatObjectDetails,
+	resetScopeCache: (): void => {
+		scopeColorMap.clear()
+		scopeColorIndex = 0
+	},
 }
-
-export const formatLogEntry = (
-	entry: LogEntry,
-	environment: Environment,
-): string =>
-	environment === 'development'
-		? formatForDevelopment(entry)
-		: formatForProduction(entry)

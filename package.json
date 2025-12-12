@@ -1,17 +1,22 @@
 {
   "name": "@nextnode/logger",
   "version": "0.2.4",
-  "description": "A lightweight, zero-dependency TypeScript logging library for NextNode projects with scope-based organization and environment-aware formatting",
+  "description": "A lightweight, zero-dependency TypeScript logging library for NextNode projects with scope-based organization, environment-aware formatting, and pluggable transports",
   "keywords": [
+    "browser",
     "development",
     "json",
+    "log-level",
     "logger",
     "logging",
     "nextnode",
+    "nodejs",
     "production",
     "scope",
     "structured-logging",
+    "transport",
     "typescript",
+    "vitest",
     "zero-dependency"
   ],
   "license": "MIT",
@@ -69,8 +74,16 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/logger.d.ts",
+      "import": "./dist/logger.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/test-utils.d.ts",
+      "import": "./dist/testing/test-utils.js"
+    },
+    "./transports/http": {
+      "types": "./dist/transports/http.d.ts",
+      "import": "./dist/transports/http.js"
     }
   }
 }

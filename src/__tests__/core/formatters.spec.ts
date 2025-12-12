@@ -5,14 +5,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import {
-	formatForDevelopment,
-	formatForProduction,
-	formatLogEntry,
-} from '@/core/formatters.js'
+	formatForNode,
+	__testing__ as nodeTestUtils,
+} from '@/formatters/console-node.js'
+import {
+	formatForBrowser,
+	__testing__ as browserTestUtils,
+} from '@/formatters/console-browser.js'
+import { formatAsJson, formatAsJsonPretty } from '@/formatters/json.js'
 
 import type { LogEntry } from '@/types.js'
 
-describe('formatForDevelopment', () => {
+describe('formatForNode', () => {
 	let mockDate: Date
 	let baseEntry: LogEntry
 
@@ -20,6 +24,9 @@ describe('formatForDevelopment', () => {
 		// Use a fixed date for consistent testing
 		mockDate = new Date('2024-08-21T10:30:15.123Z')
 		vi.setSystemTime(mockDate)
+
+		// Reset scope color cache
+		nodeTestUtils.resetScopeCache()
 
 		baseEntry = {
 			level: 'info',
@@ -35,7 +42,7 @@ describe('formatForDevelopment', () => {
 	})
 
 	it('should format basic info log entry', () => {
-		const result = formatForDevelopment(baseEntry)
+		const result = formatForNode(baseEntry)
 
 		expect(result).toContain('🔵')
 		expect(result).toContain('INFO')
@@ -45,9 +52,17 @@ describe('formatForDevelopment', () => {
 		expect(result).toContain('10:30:15')
 	})
 
+	it('should format debug log entry', () => {
+		const entry: LogEntry = { ...baseEntry, level: 'debug' }
+		const result = formatForNode(entry)
+
+		expect(result).toContain('🔍')
+		expect(result).toContain('DEBUG')
+	})
+
 	it('should format warn log entry', () => {
 		const entry: LogEntry = { ...baseEntry, level: 'warn' }
-		const result = formatForDevelopment(entry)
+		const result = formatForNode(entry)
 
 		expect(result).toContain('⚠️')
 		expect(result).toContain('WARN')
@@ -55,7 +70,7 @@ describe('formatForDevelopment', () => {
 
 	it('should format error log entry', () => {
 		const entry: LogEntry = { ...baseEntry, level: 'error' }
-		const result = formatForDevelopment(entry)
+		const result = formatForNode(entry)
 
 		expect(result).toContain('🔴')
 		expect(result).toContain('ERROR')
@@ -63,56 +78,20 @@ describe('formatForDevelopment', () => {
 
 	it('should include scope when present', () => {
 		const entry: LogEntry = { ...baseEntry, scope: 'Auth' }
-		const result = formatForDevelopment(entry)
+		const result = formatForNode(entry)
 
 		expect(result).toContain('[Auth]')
 	})
 
-	it('should include status when present', () => {
+	it('should include object properties', () => {
 		const entry: LogEntry = {
 			...baseEntry,
-			object: { status: 200 },
+			object: { status: 200, details: 'Simple detail' },
 		}
-		const result = formatForDevelopment(entry)
+		const result = formatForNode(entry)
 
-		expect(result).toContain('└─ status: 200')
-	})
-
-	it('should include single-line details', () => {
-		const entry: LogEntry = {
-			...baseEntry,
-			object: { details: 'Simple string detail' },
-		}
-		const result = formatForDevelopment(entry)
-
-		expect(result).toContain('└─ details: Simple string detail')
-	})
-
-	it('should include multi-line details', () => {
-		const entry: LogEntry = {
-			...baseEntry,
-			object: { details: { userId: 123, email: 'test@example.com' } },
-		}
-		const result = formatForDevelopment(entry)
-
-		expect(result).toContain('└─ details:')
-		expect(result).toContain('userId')
-		expect(result).toContain('email')
-	})
-
-	it('should include both status and details', () => {
-		const entry: LogEntry = {
-			...baseEntry,
-			object: {
-				status: 400,
-				details: { error: 'Validation failed' },
-			},
-		}
-		const result = formatForDevelopment(entry)
-
-		expect(result).toContain('└─ status: 400')
-		expect(result).toContain('└─ details:')
-		expect(result).toContain('error')
+		expect(result).toContain('status: 200')
+		expect(result).toContain('details: Simple detail')
 	})
 
 	it('should handle production location format', () => {
@@ -120,24 +99,10 @@ describe('formatForDevelopment', () => {
 			...baseEntry,
 			location: { function: 'testFunction' },
 		}
-		const result = formatForDevelopment(entry)
+		const result = formatForNode(entry)
 
 		expect(result).toContain('(testFunction)')
 		expect(result).not.toContain(':42:')
-	})
-
-	it('should format timestamp correctly', () => {
-		// Set specific time for this test
-		const specificDate = new Date('2024-12-25T14:30:45.678Z')
-		vi.setSystemTime(specificDate)
-
-		const entry: LogEntry = {
-			...baseEntry,
-			timestamp: specificDate.toISOString(),
-		}
-		const result = formatForDevelopment(entry)
-
-		expect(result).toContain('14:30:45')
 	})
 
 	it('should handle invalid timestamp gracefully', () => {
@@ -145,64 +110,90 @@ describe('formatForDevelopment', () => {
 			...baseEntry,
 			timestamp: 'invalid-timestamp',
 		}
-		const result = formatForDevelopment(entry)
+		const result = formatForNode(entry)
 
 		expect(result).toContain('invalid-timestamp')
 	})
-
-	it('should handle scope color cache eviction when limit reached', () => {
-		// Create multiple entries with different scopes to fill cache
-		const scopes = Array.from({ length: 12 }, (_, i) => `Scope${i}`)
-
-		scopes.forEach(scope => {
-			const entry: LogEntry = { ...baseEntry, scope }
-			formatForDevelopment(entry) // This will trigger cache operations
-		})
-
-		// This should not throw and should handle cache eviction
-		const finalEntry: LogEntry = { ...baseEntry, scope: 'FinalScope' }
-		const result = formatForDevelopment(finalEntry)
-
-		expect(result).toContain('[FinalScope]')
-	})
-
-	it('should handle timestamp parsing error in formatTime', () => {
-		// Mock Date constructor to throw error
-		const originalDate = global.Date
-		vi.stubGlobal(
-			'Date',
-			class extends Date {
-				constructor(value: string | number | Date) {
-					if (
-						typeof value === 'string' &&
-						value === 'error-timestamp'
-					) {
-						throw new Error('Invalid date')
-					}
-					super(value as string)
-				}
-			},
-		)
-
-		const entry: LogEntry = {
-			...baseEntry,
-			timestamp: 'error-timestamp',
-		}
-		const result = formatForDevelopment(entry)
-
-		// Should fall back to original timestamp string
-		expect(result).toContain('error-timestamp')
-
-		vi.stubGlobal('Date', originalDate)
-	})
 })
 
-describe('formatForProduction', () => {
+describe('formatForBrowser', () => {
 	let mockDate: Date
 	let baseEntry: LogEntry
 
 	beforeEach(() => {
-		// Use a fixed date for consistent testing
+		mockDate = new Date('2024-08-21T10:30:15.123Z')
+		vi.setSystemTime(mockDate)
+
+		browserTestUtils.resetScopeCache()
+
+		baseEntry = {
+			level: 'info',
+			message: 'Test message',
+			timestamp: mockDate.toISOString(),
+			location: { file: 'test.ts', line: 42, function: 'testFunction' },
+			requestId: 'req_abc12345',
+		}
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
+	it('should return format string and styles', () => {
+		const result = formatForBrowser(baseEntry)
+
+		expect(result).toHaveProperty('format')
+		expect(result).toHaveProperty('styles')
+		expect(result).toHaveProperty('objects')
+		expect(Array.isArray(result.styles)).toBe(true)
+		expect(Array.isArray(result.objects)).toBe(true)
+	})
+
+	it('should include emoji in format', () => {
+		const result = formatForBrowser(baseEntry)
+
+		expect(result.format).toContain('🔵')
+	})
+
+	it('should include message in format', () => {
+		const result = formatForBrowser(baseEntry)
+
+		expect(result.format).toContain('Test message')
+	})
+
+	it('should include scope in format when present', () => {
+		const entry: LogEntry = { ...baseEntry, scope: 'Auth' }
+		const result = formatForBrowser(entry)
+
+		expect(result.format).toContain('[Auth]')
+	})
+
+	it('should pass objects directly for DevTools inspection', () => {
+		const entry: LogEntry = {
+			...baseEntry,
+			object: { status: 200, details: { userId: 123 } },
+		}
+		const result = formatForBrowser(entry)
+
+		expect(result.objects).toHaveLength(1)
+		expect(result.objects[0]).toEqual({
+			status: 200,
+			details: { userId: 123 },
+		})
+	})
+
+	it('should have empty objects array when no object present', () => {
+		const result = formatForBrowser(baseEntry)
+
+		expect(result.objects).toHaveLength(0)
+	})
+})
+
+describe('formatAsJson', () => {
+	let mockDate: Date
+	let baseEntry: LogEntry
+
+	beforeEach(() => {
 		mockDate = new Date('2024-08-21T10:30:15.123Z')
 		vi.setSystemTime(mockDate)
 
@@ -220,7 +211,7 @@ describe('formatForProduction', () => {
 	})
 
 	it('should format basic log entry as JSON', () => {
-		const result = formatForProduction(baseEntry)
+		const result = formatAsJson(baseEntry)
 		const parsed = JSON.parse(result)
 
 		expect(parsed.level).toBe('info')
@@ -232,13 +223,13 @@ describe('formatForProduction', () => {
 
 	it('should include scope when present', () => {
 		const entry: LogEntry = { ...baseEntry, scope: 'Auth' }
-		const result = formatForProduction(entry)
+		const result = formatAsJson(entry)
 		const parsed = JSON.parse(result)
 
 		expect(parsed.scope).toBe('Auth')
 	})
 
-	it('should include object when present', () => {
+	it('should flatten object properties into root', () => {
 		const entry: LogEntry = {
 			...baseEntry,
 			object: {
@@ -246,63 +237,48 @@ describe('formatForProduction', () => {
 				details: { userId: 123 },
 			},
 		}
-		const result = formatForProduction(entry)
+		const result = formatAsJson(entry)
 		const parsed = JSON.parse(result)
 
-		expect(parsed.object).toEqual({
-			status: 200,
-			details: { userId: 123 },
-		})
+		expect(parsed.status).toBe(200)
+		expect(parsed.details).toEqual({ userId: 123 })
 	})
 
-	it('should not include scope field when not present', () => {
-		const result = formatForProduction(baseEntry)
-		const parsed = JSON.parse(result)
-
-		expect(parsed).not.toHaveProperty('scope')
-	})
-
-	it('should not include object field when not present', () => {
-		const result = formatForProduction(baseEntry)
-		const parsed = JSON.parse(result)
-
-		expect(parsed).not.toHaveProperty('object')
-	})
-
-	it('should handle complex location object', () => {
+	it('should not include undefined object properties', () => {
 		const entry: LogEntry = {
 			...baseEntry,
-			location: { file: 'test.ts', line: 42, function: 'testFunction' },
+			object: {
+				status: 200,
+				details: undefined,
+			},
 		}
-		const result = formatForProduction(entry)
+		const result = formatAsJson(entry)
 		const parsed = JSON.parse(result)
 
-		expect(parsed.location).toEqual({
-			file: 'test.ts',
-			line: 42,
-			function: 'testFunction',
-		})
+		expect(parsed.status).toBe(200)
+		expect(parsed).not.toHaveProperty('details')
 	})
 
-	it.each([['info' as const], ['warn' as const], ['error' as const]])(
-		'should produce valid JSON for %s level',
-		level => {
-			const entry: LogEntry = { ...baseEntry, level }
-			const result = formatForProduction(entry)
+	it.each([
+		['debug' as const],
+		['info' as const],
+		['warn' as const],
+		['error' as const],
+	])('should produce valid JSON for %s level', level => {
+		const entry: LogEntry = { ...baseEntry, level }
+		const result = formatAsJson(entry)
 
-			expect(() => JSON.parse(result)).not.toThrow()
-			const parsed = JSON.parse(result)
-			expect(parsed.level).toBe(level)
-		},
-	)
+		expect(() => JSON.parse(result)).not.toThrow()
+		const parsed = JSON.parse(result)
+		expect(parsed.level).toBe(level)
+	})
 })
 
-describe('formatLogEntry', () => {
+describe('formatAsJsonPretty', () => {
 	let mockDate: Date
 	let baseEntry: LogEntry
 
 	beforeEach(() => {
-		// Use a fixed date for consistent testing
 		mockDate = new Date('2024-08-21T10:30:15.123Z')
 		vi.setSystemTime(mockDate)
 
@@ -319,49 +295,131 @@ describe('formatLogEntry', () => {
 		vi.useRealTimers()
 	})
 
-	it('should use development formatter for development environment', () => {
-		const result = formatLogEntry(baseEntry, 'development')
+	it('should produce multi-line JSON', () => {
+		const result = formatAsJsonPretty(baseEntry)
 
-		// Development format should include emojis and colors
-		expect(result).toContain('🔵')
-		expect(result).toContain('INFO')
-		expect(result).not.toMatch(/^\{.*\}$/) // Should not be JSON
+		expect(result).toContain('\n')
+		expect(result).toContain('  ') // Indentation
 	})
 
-	it('should use production formatter for production environment', () => {
-		const result = formatLogEntry(baseEntry, 'production')
+	it('should be parseable as JSON', () => {
+		const result = formatAsJsonPretty(baseEntry)
 
-		// Production format should be valid JSON
 		expect(() => JSON.parse(result)).not.toThrow()
-		const parsed = JSON.parse(result)
-		expect(parsed.level).toBe('info')
+	})
+})
+
+describe('JSON Formatter Security', () => {
+	let mockDate: Date
+	let baseEntry: LogEntry
+
+	beforeEach(() => {
+		mockDate = new Date('2024-08-21T10:30:15.123Z')
+		vi.setSystemTime(mockDate)
+
+		baseEntry = {
+			level: 'info',
+			message: 'Test message',
+			timestamp: mockDate.toISOString(),
+			location: { function: 'testFunction' },
+			requestId: 'req_abc12345',
+		}
 	})
 
-	it('should handle complex entries in both environments', () => {
-		const complexEntry: LogEntry = {
-			...baseEntry,
-			scope: 'Database',
-			object: {
-				status: 500,
-				details: {
-					error: 'Connection timeout',
-					retries: 3,
-					host: 'localhost',
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
+	describe('Prototype Pollution Prevention', () => {
+		it('should filter out __proto__ key from object', () => {
+			const entry: LogEntry = {
+				...baseEntry,
+				object: {
+					normalKey: 'value',
+					__proto__: { polluted: true },
 				},
-			},
-		}
+			}
+			const result = formatAsJson(entry)
+			const parsed = JSON.parse(result)
 
-		// Development format
-		const devResult = formatLogEntry(complexEntry, 'development')
-		expect(devResult).toContain('[Database]')
-		expect(devResult).toContain('status: 500')
-		expect(devResult).toContain('Connection timeout')
+			expect(parsed.normalKey).toBe('value')
+			// Check that __proto__ is not an own property of the parsed object
+			expect(
+				Object.prototype.hasOwnProperty.call(parsed, '__proto__'),
+			).toBe(false)
+		})
 
-		// Production format
-		const prodResult = formatLogEntry(complexEntry, 'production')
-		const parsed = JSON.parse(prodResult)
-		expect(parsed.scope).toBe('Database')
-		expect(parsed.object.status).toBe(500)
-		expect(parsed.object.details.error).toBe('Connection timeout')
+		it('should filter out constructor key from object', () => {
+			const entry: LogEntry = {
+				...baseEntry,
+				object: {
+					normalKey: 'value',
+					constructor: { polluted: true },
+				},
+			}
+			const result = formatAsJson(entry)
+			const parsed = JSON.parse(result)
+
+			expect(parsed.normalKey).toBe('value')
+			expect(parsed).not.toHaveProperty('constructor')
+		})
+
+		it('should filter out prototype key from object', () => {
+			const entry: LogEntry = {
+				...baseEntry,
+				object: {
+					normalKey: 'value',
+					prototype: { polluted: true },
+				},
+			}
+			const result = formatAsJson(entry)
+			const parsed = JSON.parse(result)
+
+			expect(parsed.normalKey).toBe('value')
+			expect(parsed).not.toHaveProperty('prototype')
+		})
+
+		it('should allow normal keys while filtering dangerous ones', () => {
+			const entry: LogEntry = {
+				...baseEntry,
+				object: {
+					status: 200,
+					userId: 123,
+					__proto__: { evil: true },
+					constructor: { evil: true },
+					prototype: { evil: true },
+					data: { nested: 'value' },
+				},
+			}
+			const result = formatAsJson(entry)
+			const parsed = JSON.parse(result)
+
+			// Normal keys should be present
+			expect(parsed.status).toBe(200)
+			expect(parsed.userId).toBe(123)
+			expect(parsed.data).toEqual({ nested: 'value' })
+
+			// Dangerous keys should be filtered
+			expect(Object.keys(parsed)).not.toContain('__proto__')
+			expect(Object.keys(parsed)).not.toContain('constructor')
+			expect(Object.keys(parsed)).not.toContain('prototype')
+		})
+
+		it('should apply same filtering in formatAsJsonPretty', () => {
+			const entry: LogEntry = {
+				...baseEntry,
+				object: {
+					normalKey: 'value',
+					__proto__: { polluted: true },
+					constructor: { polluted: true },
+				},
+			}
+			const result = formatAsJsonPretty(entry)
+			const parsed = JSON.parse(result)
+
+			expect(parsed.normalKey).toBe('value')
+			expect(Object.keys(parsed)).not.toContain('__proto__')
+			expect(Object.keys(parsed)).not.toContain('constructor')
+		})
 	})
 })

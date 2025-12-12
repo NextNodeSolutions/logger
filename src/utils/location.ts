@@ -10,6 +10,12 @@ import type {
 } from '../types.js'
 
 // Constants for better performance and maintainability
+/**
+ * Maximum length for stack lines to prevent ReDoS attacks.
+ * Lines longer than this will be truncated before regex matching.
+ */
+const MAX_STACK_LINE_LENGTH = 500
+
 const STACK_TRACE_PATTERNS = {
 	function: [
 		/at\s+([^(\s]+)\s+\(/, // at functionName (file:line:col)
@@ -24,7 +30,15 @@ const STACK_TRACE_PATTERNS = {
 	],
 } as const
 
-const INTERNAL_FILES = ['logger.ts', 'location.ts', 'formatters.ts'] as const
+// Internal files to skip when parsing stack traces
+const INTERNAL_FILES = [
+	'logger.ts',
+	'location.ts',
+	'console-node.ts',
+	'console-browser.ts',
+	'console.ts',
+	'test-utils.ts',
+] as const
 
 const isValidStackLine = (line: string): boolean =>
 	typeof line === 'string' &&
@@ -34,9 +48,20 @@ const isValidStackLine = (line: string): boolean =>
 const isInternalFile = (line: string): boolean =>
 	INTERNAL_FILES.some(file => line.includes(file))
 
+/**
+ * Truncates a stack line if it exceeds the maximum length.
+ * This prevents ReDoS attacks with maliciously long strings.
+ */
+const truncateStackLine = (line: string): string =>
+	line.length > MAX_STACK_LINE_LENGTH
+		? line.slice(0, MAX_STACK_LINE_LENGTH)
+		: line
+
 const extractFunctionName = (stackLine: string): string => {
+	const safeLine = truncateStackLine(stackLine)
+
 	for (const pattern of STACK_TRACE_PATTERNS.function) {
-		const match = pattern.exec(stackLine)
+		const match = pattern.exec(safeLine)
 		if (match?.[1]) {
 			const functionName = match[1].trim()
 
@@ -57,8 +82,10 @@ const extractFunctionName = (stackLine: string): string => {
 }
 
 const extractFileInfo = (stackLine: string): { file: string; line: number } => {
+	const safeLine = truncateStackLine(stackLine)
+
 	for (const pattern of STACK_TRACE_PATTERNS.file) {
-		const match = pattern.exec(stackLine)
+		const match = pattern.exec(safeLine)
 		if (match?.[1] && match[2]) {
 			const fullPath = match[1]
 			const line = Number(match[2])
@@ -92,14 +119,14 @@ const getCallerStackLine = (stack: string): string => {
 	}
 
 	// Fallback to first line after Error if no valid line found
-	return lines[1] || ''
+	return lines[1] ?? ''
 }
 
 export const parseLocation = (
 	isProduction: boolean,
 ): LocationInfo | ProductionLocationInfo => {
 	try {
-		const stack = new Error().stack || ''
+		const stack = new Error().stack ?? ''
 		const stackLine = getCallerStackLine(stack)
 
 		const functionName = extractFunctionName(stackLine)
@@ -124,8 +151,10 @@ export const parseLocation = (
 }
 
 export const detectEnvironment = (): Environment => {
-	// Check NODE_ENV first
-	const nodeEnv = process.env['NODE_ENV']
+	// Check NODE_ENV first - handle both browser and Node.js environments
+	const nodeEnv =
+		typeof process !== 'undefined' ? process.env['NODE_ENV'] : undefined
+
 	if (nodeEnv === 'production' || nodeEnv === 'prod') {
 		return 'production'
 	}
