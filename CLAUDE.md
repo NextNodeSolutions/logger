@@ -41,19 +41,19 @@ pnpm changeset:publish  # Publish to npm registry
 
 - **Entry Point**: `src/logger.ts` - exports all public API
 - **Formatters**:
-  - `src/formatters/console-node.ts` - Node.js console formatting
-  - `src/formatters/console-browser.ts` - Browser console formatting
-  - `src/formatters/json.ts` - JSON output formatting
+    - `src/formatters/console-node.ts` - Node.js console formatting
+    - `src/formatters/console-browser.ts` - Browser console formatting
+    - `src/formatters/json.ts` - JSON output formatting
 - **Transports**:
-  - `src/transports/console.ts` - Console transport
-  - `src/transports/http.ts` - HTTP transport for remote logging
-  - `src/transports/transport.ts` - Base transport interface
+    - `src/transports/console.ts` - Console transport
+    - `src/transports/http.ts` - HTTP transport for remote logging
+    - `src/transports/transport.ts` - Base transport interface
 - **Utilities**:
-  - `src/utils/crypto.ts` - Request ID generation
-  - `src/utils/serialization.ts` - Safe JSON stringification
-  - `src/utils/time.ts` - Timestamp utilities
-  - `src/utils/location.ts` - Call location tracking and parsing
-  - `src/utils/environment.ts` - Runtime environment detection
+    - `src/utils/crypto.ts` - Request ID generation
+    - `src/utils/serialization.ts` - Safe JSON stringification
+    - `src/utils/time.ts` - Timestamp utilities
+    - `src/utils/location.ts` - Call location tracking and parsing
+    - `src/utils/environment.ts` - Runtime environment detection
 - **Testing**: `src/testing/test-utils.ts` - Spy, noop, and mock loggers
 - **Types**: `src/types.ts` - Complete TypeScript type definitions
 - **Build Output**: ESM-only distribution to `dist/`
@@ -104,9 +104,15 @@ import { logger, createLogger } from '@nextnode/logger'
 // Default logger
 logger.info('Hello world')
 logger.warn('Something might be wrong', { details: { userId } })
-logger.error('Something went wrong', { scope: 'api', details: { error, userId } })
+logger.error('Something went wrong', {
+	scope: 'api',
+	details: { error, userId },
+})
 
 // Custom logger with prefix
 const apiLogger = createLogger({ prefix: '[API]', minLevel: 'info' })
-apiLogger.info('Request received', { scope: 'users', details: { method: 'POST', path: '/users' } })
+apiLogger.info('Request received', {
+	scope: 'users',
+	details: { method: 'POST', path: '/users' },
+})
 ```
