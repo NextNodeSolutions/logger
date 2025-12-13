@@ -3,7 +3,8 @@
  * Provides reusable mocking utilities for Vitest tests
  */
 
-import { vi, type MockInstance } from 'vitest'
+import type { MockInstance } from 'vitest'
+import { vi } from 'vitest'
 
 /**
  * Console mocking utilities
@@ -52,9 +53,7 @@ export const restoreConsoleMocks = (mocks: ConsoleMocks): void => {
  */
 export const createMockError = (
 	stack: string,
-): (new (
-	message?: string,
-) => Error) =>
+): new (message?: string) => Error =>
 	class MockError extends Error {
 		override stack = stack
 	}

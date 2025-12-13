@@ -1,16 +1,16 @@
 name: Test
 
 on:
-  pull_request:
-    branches: [main, master]
+    pull_request:
+        branches: [main, master]
 
 jobs:
-  quality-checks:
-    name: Quality Checks
-    uses: NextNodeSolutions/github-actions/.github/workflows/quality-checks.yml@main
-    with:
-      run-lint: true
-      run-typecheck: true
-      run-tests: true
-      run-build: true
-      test-coverage: true
+    quality-checks:
+        name: Quality Checks
+        uses: NextNodeSolutions/github-actions/.github/workflows/quality-checks.yml@main
+        with:
+            run-lint: true
+            run-typecheck: true
+            run-tests: true
+            run-build: true
+            test-coverage: true
