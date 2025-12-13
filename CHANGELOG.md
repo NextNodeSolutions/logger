@@ -1,5 +1,20 @@
 # @nextnode/logger
 
+## 0.3.2
+
+### Patch Changes
+
+- [#20](https://github.com/NextNodeSolutions/logger/pull/20) [`ef01b4b`](https://github.com/NextNodeSolutions/logger/commit/ef01b4b1792852b7bab6d7b47b3a781194ac5cb0) Thanks [@walid-mos](https://github.com/walid-mos)! - DRY code cleanup and improved type safety
+    - Extract shared utilities to reduce code duplication across formatters
+    - Add `formatTimeForDisplay` and `formatLocationForDisplay` shared utilities
+    - Centralize `extractScope` function for consistent scope handling
+    - Remove unnecessary type assertions in test utilities
+
+- [#20](https://github.com/NextNodeSolutions/logger/pull/20) [`ef01b4b`](https://github.com/NextNodeSolutions/logger/commit/ef01b4b1792852b7bab6d7b47b3a781194ac5cb0) Thanks [@walid-mos](https://github.com/walid-mos)! - chore: migrate development tooling to @nextnode/standards
+    - Replace ESLint with Biome for linting
+    - Use Prettier config from @nextnode/standards
+    - Simplify configuration files by extending @nextnode/standards
+
 ## 0.3.1
 
 ### Patch Changes
