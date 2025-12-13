@@ -141,8 +141,6 @@ export const createBrowserLogArgs = (entry: LogEntry): unknown[] => {
 // Export for testing
 export const __testing__ = {
 	getScopeStyle,
-	formatTime: formatTimeForDisplay,
-	formatLocation: formatLocationForDisplay,
 	resetScopeCache: (): void => {
 		scopeStyleMap.clear()
 		scopeStyleIndex = 0

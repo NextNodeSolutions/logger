@@ -150,8 +150,6 @@ export const formatForNode = (entry: LogEntry): string => {
 // Export for testing
 export const __testing__ = {
 	getScopeColor,
-	formatTime: formatTimeForDisplay,
-	formatLocation: formatLocationForDisplay,
 	formatObjectDetails,
 	resetScopeCache: (): void => {
 		scopeColorMap.clear()
