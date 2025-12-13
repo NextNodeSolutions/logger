@@ -6,6 +6,7 @@
 import { parseLocation, detectEnvironment } from './utils/location.js'
 import { generateRequestId } from './utils/crypto.js'
 import { getCurrentTimestamp } from './utils/time.js'
+import { extractScope } from './utils/scope.js'
 import { ConsoleTransport } from './transports/console.js'
 import { LOG_LEVEL_PRIORITY } from './types.js'
 
@@ -50,31 +51,12 @@ export class NextNodeLogger implements Logger {
 		return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[this.minLevel]
 	}
 
-	private extractScope(object?: LogObject): {
-		scope: string | undefined
-		cleanObject: Omit<LogObject, 'scope'> | undefined
-	} {
-		if (!object) {
-			return { scope: undefined, cleanObject: undefined }
-		}
-
-		const { scope, ...rest } = object
-
-		// Only return cleanObject if there are properties other than scope
-		const hasOtherProperties = Object.keys(rest).length > 0
-
-		return {
-			scope: scope ?? undefined,
-			cleanObject: hasOtherProperties ? rest : undefined,
-		}
-	}
-
 	private createLogEntry(
 		level: LogLevel,
 		message: string,
 		object?: LogObject,
 	): LogEntry {
-		const { scope, cleanObject } = this.extractScope(object)
+		const { scope, cleanObject } = extractScope(object)
 
 		// Add prefix to message if configured
 		const finalMessage = this.prefix ? `${this.prefix} ${message}` : message

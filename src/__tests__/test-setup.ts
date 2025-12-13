@@ -48,11 +48,16 @@ export const restoreConsoleMocks = (mocks: ConsoleMocks): void => {
 
 /**
  * Mock Error class for stack trace testing
+ * Returns a class constructor compatible with vi.stubGlobal('Error', ...)
  */
-export const createMockError = (stack: string): ErrorConstructor =>
+export const createMockError = (
+	stack: string,
+): (new (
+	message?: string,
+) => Error) =>
 	class MockError extends Error {
 		override stack = stack
-	} as ErrorConstructor
+	}
 
 /**
  * Common stack trace patterns for testing

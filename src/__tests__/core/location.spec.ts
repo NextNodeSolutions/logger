@@ -27,7 +27,7 @@ describe('parseLocation', () => {
 			'Error',
 			class MockError extends Error {
 				override stack = mockStack
-			} as ErrorConstructor,
+			},
 		)
 
 		const location = parseLocation(false)

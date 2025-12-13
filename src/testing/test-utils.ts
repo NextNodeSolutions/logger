@@ -6,6 +6,7 @@
 import { generateRequestId } from '../utils/crypto.js'
 import { getCurrentTimestamp } from '../utils/time.js'
 import { parseLocation } from '../utils/location.js'
+import { extractScope } from '../utils/scope.js'
 
 import type {
 	Logger,
@@ -43,25 +44,6 @@ import type {
  */
 export const createSpyLogger = (): SpyLogger => {
 	const calls: LogEntry[] = []
-
-	const extractScope = (
-		object?: LogObject,
-	): {
-		scope: string | undefined
-		cleanObject: Omit<LogObject, 'scope'> | undefined
-	} => {
-		if (!object) {
-			return { scope: undefined, cleanObject: undefined }
-		}
-
-		const { scope, ...rest } = object
-		const hasOtherProperties = Object.keys(rest).length > 0
-
-		return {
-			scope: scope ?? undefined,
-			cleanObject: hasOtherProperties ? rest : undefined,
-		}
-	}
 
 	const createEntry = (
 		level: LogLevel,
