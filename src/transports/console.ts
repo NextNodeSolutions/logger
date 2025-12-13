@@ -3,12 +3,11 @@
  * Auto-detects runtime environment and uses appropriate formatter
  */
 
-import { formatForNode } from '../formatters/console-node.js'
 import { formatForBrowser } from '../formatters/console-browser.js'
+import { formatForNode } from '../formatters/console-node.js'
 import { formatAsJson } from '../formatters/json.js'
+import type { Environment, LogEntry, LogLevel } from '../types.js'
 import { detectRuntime } from '../utils/environment.js'
-
-import type { LogEntry, LogLevel, Environment } from '../types.js'
 import type { Transport, TransportConfig } from './transport.js'
 
 // Console methods mapping for type safety
@@ -55,17 +54,20 @@ export class ConsoleTransport implements Transport {
 
 		// Production always uses JSON regardless of format setting
 		if (environment === 'production' && format !== 'json') {
+			// biome-ignore lint/suspicious/noConsole: Logger library must use console
 			console[method](formatAsJson(entry))
 			return
 		}
 
 		// Explicit format override
 		if (format === 'json') {
+			// biome-ignore lint/suspicious/noConsole: Logger library must use console
 			console[method](formatAsJson(entry))
 			return
 		}
 
 		if (format === 'node') {
+			// biome-ignore lint/suspicious/noConsole: Logger library must use console
 			console[method](formatForNode(entry))
 			return
 		}
@@ -82,6 +84,7 @@ export class ConsoleTransport implements Transport {
 		}
 
 		// Node.js or unknown - use ANSI
+		// biome-ignore lint/suspicious/noConsole: Logger library must use console
 		console[method](formatForNode(entry))
 	}
 
@@ -92,13 +95,16 @@ export class ConsoleTransport implements Transport {
 		const { format, styles, objects } = formatForBrowser(entry)
 
 		if (objects.length > 0) {
-			// Use console.groupCollapsed for entries with objects
+			// biome-ignore lint/suspicious/noConsole: Logger library must use console
 			console.groupCollapsed(format, ...styles)
 			for (const obj of objects) {
+				// biome-ignore lint/suspicious/noConsole: Logger library must use console
 				console.dir(obj, { depth: null })
 			}
+			// biome-ignore lint/suspicious/noConsole: Logger library must use console
 			console.groupEnd()
 		} else {
+			// biome-ignore lint/suspicious/noConsole: Logger library must use console
 			console[method](format, ...styles)
 		}
 	}

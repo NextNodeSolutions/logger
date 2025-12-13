@@ -4,9 +4,9 @@
  */
 
 import type {
+	Environment,
 	LocationInfo,
 	ProductionLocationInfo,
-	Environment,
 } from '../types.js'
 
 // Constants for better performance and maintainability
@@ -153,7 +153,7 @@ export const parseLocation = (
 export const detectEnvironment = (): Environment => {
 	// Check NODE_ENV first - handle both browser and Node.js environments
 	const nodeEnv =
-		typeof process !== 'undefined' ? process.env['NODE_ENV'] : undefined
+		typeof process !== 'undefined' ? process.env.NODE_ENV : undefined
 
 	if (nodeEnv === 'production' || nodeEnv === 'prod') {
 		return 'production'

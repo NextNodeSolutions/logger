@@ -2,9 +2,9 @@
  * Tests for NextNode Logger location parsing
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { parseLocation, detectEnvironment } from '@/utils/location.js'
+import { detectEnvironment, parseLocation } from '@/utils/location.js'
 
 import { createMockError, MOCK_STACKS } from '../test-setup.js'
 
@@ -225,7 +225,7 @@ describe('parseLocation', () => {
 
 		it('should truncate long lines and still parse subsequent lines', () => {
 			// First line is very long, second line is normal
-			const longLine = 'at ' + 'x'.repeat(1000) + ' (/some/path:1:1)'
+			const longLine = `at ${'x'.repeat(1000)} (/some/path:1:1)`
 			const normalLine = 'at userFunction (/path/to/app.ts:30:2)'
 			const mockStack = `Error
     ${longLine}
@@ -241,7 +241,7 @@ describe('parseLocation', () => {
 
 		it('should not hang on pathological regex input', () => {
 			// Pattern that could cause catastrophic backtracking in unprotected regex
-			const pathological = 'at ' + 'a '.repeat(500) + '('
+			const pathological = `at ${'a '.repeat(500)}(`
 			const mockStack = `Error
     ${pathological}
     at safeFunction (/path/to/app.ts:10:5)`
@@ -290,7 +290,7 @@ describe('detectEnvironment', () => {
 	})
 
 	it('should default to development when NODE_ENV is not set', () => {
-		delete process.env.NODE_ENV
+		process.env.NODE_ENV = undefined
 		expect(detectEnvironment()).toBe('development')
 	})
 
