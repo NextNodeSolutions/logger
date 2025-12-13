@@ -3,9 +3,8 @@
  * Common formatting functions used by console formatters
  */
 
-import { isDevelopmentLocation } from '../types.js'
-
 import type { LogEntry } from '../types.js'
+import { isDevelopmentLocation } from '../types.js'
 
 /**
  * Formats location info for console output.

@@ -3,18 +3,17 @@
  * Provides spy logger and mock utilities for use in vitest/jest tests
  */
 
-import { generateRequestId } from '../utils/crypto.js'
-import { getCurrentTimestamp } from '../utils/time.js'
-import { parseLocation } from '../utils/location.js'
-import { extractScope } from '../utils/scope.js'
-
 import type {
-	Logger,
-	LogObject,
 	LogEntry,
+	Logger,
 	LogLevel,
+	LogObject,
 	SpyLogger,
 } from '../types.js'
+import { generateRequestId } from '../utils/crypto.js'
+import { parseLocation } from '../utils/location.js'
+import { extractScope } from '../utils/scope.js'
+import { getCurrentTimestamp } from '../utils/time.js'
 
 /**
  * Creates a spy logger that tracks all log calls without producing any output.
@@ -205,9 +204,9 @@ export const createMockLogger = (): MockLogger => ({
 
 // Re-export types for convenience
 export type {
-	Logger,
-	LogObject,
 	LogEntry,
+	Logger,
 	LogLevel,
+	LogObject,
 	SpyLogger,
 } from '../types.js'

@@ -3,11 +3,10 @@
  * Uses ANSI escape codes for colorized terminal output
  */
 
+import type { LogEntry, LogLevel } from '../types.js'
 import { safeStringify } from '../utils/serialization.js'
 import { formatTimeForDisplay } from '../utils/time.js'
 import { formatLocationForDisplay } from './shared.js'
-
-import type { LogEntry, LogLevel } from '../types.js'
 
 const COLORS = {
 	reset: '\x1b[0m',
@@ -72,6 +71,22 @@ const getScopeColor = (scope: string): string => {
 const colorize = (text: string, color: string): string =>
 	`${color}${text}${COLORS.reset}`
 
+const formatPropertyLines = (
+	key: string,
+	valueStr: string,
+	prefix: string,
+): string[] => {
+	if (!valueStr.includes('\n')) {
+		return [colorize(`   ${prefix} ${key}: ${valueStr}`, COLORS.gray)]
+	}
+
+	const lines = [colorize(`   ${prefix} ${key}:`, COLORS.gray)]
+	for (const line of valueStr.split('\n')) {
+		lines.push(colorize(`      ${line}`, COLORS.gray))
+	}
+	return lines
+}
+
 const formatObjectDetails = (object: LogEntry['object']): string[] => {
 	const lines: string[] = []
 
@@ -91,16 +106,7 @@ const formatObjectDetails = (object: LogEntry['object']): string[] => {
 		const valueStr =
 			typeof value === 'object' ? safeStringify(value) : String(value)
 
-		if (valueStr.includes('\n')) {
-			lines.push(colorize(`   ${prefix} ${key}:`, COLORS.gray))
-			for (const line of valueStr.split('\n')) {
-				lines.push(colorize(`      ${line}`, COLORS.gray))
-			}
-		} else {
-			lines.push(
-				colorize(`   ${prefix} ${key}: ${valueStr}`, COLORS.gray),
-			)
-		}
+		lines.push(...formatPropertyLines(key, valueStr, prefix))
 	}
 
 	return lines

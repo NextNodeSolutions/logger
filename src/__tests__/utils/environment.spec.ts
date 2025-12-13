@@ -2,7 +2,7 @@
  * Tests for NextNode Logger environment detection
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { detectRuntime, hasCryptoSupport } from '@/utils/environment.js'
 

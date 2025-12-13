@@ -3,9 +3,9 @@
  * Tests URL validation, header sanitization, and SSRF prevention
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { HttpTransport, createHttpTransport } from '@/transports/http.js'
+import { createHttpTransport, HttpTransport } from '@/transports/http.js'
 
 describe('HttpTransport Security', () => {
 	beforeEach(() => {

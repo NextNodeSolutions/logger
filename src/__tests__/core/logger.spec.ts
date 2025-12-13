@@ -2,15 +2,12 @@
  * Tests for NextNode Logger core functionality
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { NextNodeLogger, createLogger, logger } from '@/logger.js'
+import { createLogger, logger, NextNodeLogger } from '@/logger.js'
 
-import {
-	createConsoleMocks,
-	restoreConsoleMocks,
-	type ConsoleMocks,
-} from '../test-setup.js'
+import type { ConsoleMocks } from '../test-setup.js'
+import { createConsoleMocks, restoreConsoleMocks } from '../test-setup.js'
 
 import type { LoggerConfig } from '@/types.js'
 
