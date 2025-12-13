@@ -2,16 +2,16 @@
  * Tests for NextNode Logger formatters
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import {
+	__testing__ as browserTestUtils,
+	formatForBrowser,
+} from '@/formatters/console-browser.js'
 import {
 	formatForNode,
 	__testing__ as nodeTestUtils,
 } from '@/formatters/console-node.js'
-import {
-	formatForBrowser,
-	__testing__ as browserTestUtils,
-} from '@/formatters/console-browser.js'
 import { formatAsJson, formatAsJsonPretty } from '@/formatters/json.js'
 
 import type { LogEntry } from '@/types.js'
@@ -344,9 +344,7 @@ describe('JSON Formatter Security', () => {
 
 			expect(parsed.normalKey).toBe('value')
 			// Check that __proto__ is not an own property of the parsed object
-			expect(
-				Object.prototype.hasOwnProperty.call(parsed, '__proto__'),
-			).toBe(false)
+			expect(Object.hasOwn(parsed, '__proto__')).toBe(false)
 		})
 
 		it('should filter out constructor key from object', () => {

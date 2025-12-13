@@ -2,7 +2,7 @@
  * Tests for NextNode Logger utilities
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { generateRequestId } from '@/utils/crypto.js'
 import { safeStringify } from '@/utils/serialization.js'
