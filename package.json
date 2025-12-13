@@ -59,6 +59,7 @@
 		"husky": "^9",
 		"lint-staged": "^16",
 		"prettier": "^3",
+		"prettier-plugin-tailwindcss": "^0.6",
 		"tsc-alias": "^1",
 		"typescript": "^5",
 		"vitest": "^3"
@@ -81,5 +82,6 @@
 			"types": "./dist/transports/http.d.ts",
 			"import": "./dist/transports/http.js"
 		}
-	}
+	},
+	"prettier": "@nextnode/standards/prettier"
 }

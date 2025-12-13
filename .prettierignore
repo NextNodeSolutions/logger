@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+
+# Lock files
+pnpm-lock.yaml
+
+# Coverage
+coverage/
+
+# Changelog (auto-generated)
+CHANGELOG.md
