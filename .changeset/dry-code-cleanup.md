@@ -1,5 +1,5 @@
 ---
-"@nextnode/logger": minor
+"@nextnode/logger": patch
 ---
 
 DRY code cleanup and improved type safety
