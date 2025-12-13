@@ -3,7 +3,8 @@
  * Uses CSS styling and console API features for DevTools
  */
 
-import { isDevelopmentLocation } from '../types.js'
+import { formatTimeForDisplay } from '../utils/time.js'
+import { formatLocationForDisplay } from './shared.js'
 
 import type { LogEntry, LogLevel } from '../types.js'
 
@@ -69,28 +70,6 @@ const getScopeStyle = (scope: string): string => {
 	return style
 }
 
-const formatTime = (timestamp: string): string => {
-	try {
-		const date = new Date(timestamp)
-		if (Number.isNaN(date.getTime())) {
-			return timestamp
-		}
-		const hours = date.getUTCHours().toString().padStart(2, '0')
-		const minutes = date.getUTCMinutes().toString().padStart(2, '0')
-		const seconds = date.getUTCSeconds().toString().padStart(2, '0')
-		return `${hours}:${minutes}:${seconds}`
-	} catch {
-		return timestamp
-	}
-}
-
-const formatLocation = (location: LogEntry['location']): string => {
-	if (isDevelopmentLocation(location)) {
-		return `${location.file}:${location.line}:${location.function}`
-	}
-	return location.function
-}
-
 export interface BrowserLogOutput {
 	format: string
 	styles: string[]
@@ -125,7 +104,7 @@ export const formatForBrowser = (entry: LogEntry): BrowserLogOutput => {
 	}
 
 	// Timestamp
-	formatParts.push(`%c[${formatTime(timestamp)}]`)
+	formatParts.push(`%c[${formatTimeForDisplay(timestamp)}]`)
 	styles.push(STYLES.timestamp)
 
 	// Message (reset to default)
@@ -133,7 +112,7 @@ export const formatForBrowser = (entry: LogEntry): BrowserLogOutput => {
 	styles.push(STYLES.message)
 
 	// Location and request ID
-	formatParts.push(`%c(${formatLocation(location)}) [${requestId}]`)
+	formatParts.push(`%c(${formatLocationForDisplay(location)}) [${requestId}]`)
 	styles.push(STYLES.location)
 
 	const objects: unknown[] = []
@@ -162,8 +141,6 @@ export const createBrowserLogArgs = (entry: LogEntry): unknown[] => {
 // Export for testing
 export const __testing__ = {
 	getScopeStyle,
-	formatTime,
-	formatLocation,
 	resetScopeCache: (): void => {
 		scopeStyleMap.clear()
 		scopeStyleIndex = 0

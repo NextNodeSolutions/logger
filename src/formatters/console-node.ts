@@ -4,7 +4,8 @@
  */
 
 import { safeStringify } from '../utils/serialization.js'
-import { isDevelopmentLocation } from '../types.js'
+import { formatTimeForDisplay } from '../utils/time.js'
+import { formatLocationForDisplay } from './shared.js'
 
 import type { LogEntry, LogLevel } from '../types.js'
 
@@ -68,28 +69,6 @@ const getScopeColor = (scope: string): string => {
 	return color
 }
 
-const formatTime = (timestamp: string): string => {
-	try {
-		const date = new Date(timestamp)
-		if (Number.isNaN(date.getTime())) {
-			return timestamp
-		}
-		const hours = date.getUTCHours().toString().padStart(2, '0')
-		const minutes = date.getUTCMinutes().toString().padStart(2, '0')
-		const seconds = date.getUTCSeconds().toString().padStart(2, '0')
-		return `${hours}:${minutes}:${seconds}`
-	} catch {
-		return timestamp
-	}
-}
-
-const formatLocation = (location: LogEntry['location']): string => {
-	if (isDevelopmentLocation(location)) {
-		return `${location.file}:${location.line}:${location.function}`
-	}
-	return location.function
-}
-
 const colorize = (text: string, color: string): string =>
 	`${color}${text}${COLORS.reset}`
 
@@ -145,14 +124,19 @@ export const formatForNode = (entry: LogEntry): string => {
 	}
 
 	// Timestamp
-	components.push(colorize(`[${formatTime(timestamp)}]`, COLORS.gray))
+	components.push(
+		colorize(`[${formatTimeForDisplay(timestamp)}]`, COLORS.gray),
+	)
 
 	// Message
 	components.push(message)
 
 	// Location and request ID (dimmed)
 	components.push(
-		colorize(`(${formatLocation(location)}) [${requestId}]`, COLORS.dim),
+		colorize(
+			`(${formatLocationForDisplay(location)}) [${requestId}]`,
+			COLORS.dim,
+		),
 	)
 
 	const lines = [components.join(' ')]
@@ -166,8 +150,6 @@ export const formatForNode = (entry: LogEntry): string => {
 // Export for testing
 export const __testing__ = {
 	getScopeColor,
-	formatTime,
-	formatLocation,
 	formatObjectDetails,
 	resetScopeCache: (): void => {
 		scopeColorMap.clear()
