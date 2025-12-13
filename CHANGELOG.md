@@ -1,5 +1,16 @@
 # @nextnode/logger
 
+## 0.3.1
+
+### Patch Changes
+
+- [#18](https://github.com/NextNodeSolutions/logger/pull/18) [`3a9b0f0`](https://github.com/NextNodeSolutions/logger/commit/3a9b0f091bb55dd34f6b8b9eb21497af25d6b24a) Thanks [@walid-mos](https://github.com/walid-mos)! - DRY code cleanup and improved type safety
+
+  - Extract shared utilities to reduce code duplication across formatters
+  - Add `formatTimeForDisplay` and `formatLocationForDisplay` shared utilities
+  - Centralize `extractScope` function for consistent scope handling
+  - Remove unnecessary type assertions in test utilities
+
 ## 0.3.0
 
 ### Minor Changes
