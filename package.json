@@ -24,11 +24,12 @@
 	"files": [
 		"CHANGELOG.md",
 		"README.md",
-		"dist/**/*"
+		"dist/**/*.d.ts",
+		"dist/**/*.js"
 	],
 	"scripts": {
 		"prebuild": "pnpm clean",
-		"build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+		"build": "tsup",
 		"changeset": "changeset",
 		"changeset:publish": "changeset publish",
 		"changeset:version": "changeset version",
@@ -39,6 +40,7 @@
 		"lint-staged": "lint-staged",
 		"prepare": "husky",
 		"prepublishOnly": "pnpm build",
+		"size": "du -sh dist/ && find dist -name '*.js' -exec wc -c {} + | tail -1",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
 		"test:ui": "vitest --ui",
@@ -59,7 +61,7 @@
 		"husky": "^9",
 		"lint-staged": "^16",
 		"prettier": "^3",
-		"tsc-alias": "^1",
+		"tsup": "^8.5.1",
 		"typescript": "^5",
 		"vitest": "^3"
 	},
@@ -74,13 +76,14 @@
 			"import": "./dist/logger.js"
 		},
 		"./testing": {
-			"types": "./dist/testing/test-utils.d.ts",
-			"import": "./dist/testing/test-utils.js"
+			"types": "./dist/testing.d.ts",
+			"import": "./dist/testing.js"
 		},
 		"./transports/http": {
 			"types": "./dist/transports/http.d.ts",
 			"import": "./dist/transports/http.js"
 		}
 	},
-	"prettier": "@nextnode/standards/prettier/core"
+	"prettier": "@nextnode/standards/prettier/core",
+	"sideEffects": false
 }
