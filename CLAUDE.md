@@ -11,12 +11,13 @@ This is `@nextnode/logger`, a lightweight, zero-dependency TypeScript logging li
 ### Primary Workflow
 
 ```bash
-pnpm build           # Build library (TypeScript compilation)
-pnpm lint            # ESLint with @nextnode/eslint-plugin
+pnpm build           # Build with tsup (minified ESM + .d.ts)
+pnpm lint            # Biome linting
 pnpm type-check      # TypeScript validation without build
 pnpm test            # Run tests with Vitest
 pnpm test:coverage   # Run tests with coverage report
 pnpm format          # Format code with Biome
+pnpm size            # Check bundle size
 ```
 
 ### Development & Testing
@@ -58,11 +59,19 @@ pnpm changeset:publish  # Publish to npm registry
 - **Types**: `src/types.ts` - Complete TypeScript type definitions
 - **Build Output**: ESM-only distribution to `dist/`
 
+### Build Configuration
+
+- **Bundler**: tsup (esbuild-based, zero-config)
+- **Format**: ESM-only (minified)
+- **Output**: `dist/` (JS + .d.ts files only)
+- **Source maps**: Generated locally, not published to npm
+- **Bundle Size**: ~11KB minified JS
+
 ### TypeScript Configuration
 
 - **Strict Mode**: Maximum type safety enabled with `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`
 - **Module System**: ESNext with bundler resolution for modern library distribution
-- **Build**: Separate `tsconfig.build.json` for production builds (enables emit)
+- **Build**: tsup for production builds with tree-shaking and minification
 - **Development**: Main `tsconfig.json` with `noEmit: true` for validation only
 - **Module Resolution**: ESM-only with `.js` extensions for imports
 
