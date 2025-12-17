@@ -70,6 +70,8 @@
 	},
 	"packageManager": "pnpm@10.11.0",
 	"type": "module",
+	"main": "./dist/logger.js",
+	"types": "./dist/logger.d.ts",
 	"exports": {
 		".": {
 			"types": "./dist/logger.d.ts",
