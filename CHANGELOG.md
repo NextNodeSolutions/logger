@@ -1,5 +1,19 @@
 # @nextnode/logger
 
+## 0.3.4
+
+### Patch Changes
+
+- [#26](https://github.com/NextNodeSolutions/logger/pull/26) [`c1a9719`](https://github.com/NextNodeSolutions/logger/commit/c1a9719cf45446a6fd9c0379251c94827338a9bb) Thanks [@walid-mos](https://github.com/walid-mos)! - Add main and types fields for bundlephobia compatibility
+
+    Bundlephobia (and some legacy tools) require the `main` and `types` fields at the root level of package.json to detect entry points. The `exports` field alone is not sufficient for these older tools.
+
+    This change adds:
+    - `main`: Points to the ESM entry point for legacy tool compatibility
+    - `types`: Points to the TypeScript declarations for tools that don't read `exports`
+
+    No functional change for modern consumers who use the `exports` field.
+
 ## 0.3.3
 
 ### Patch Changes
