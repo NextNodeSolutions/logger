@@ -1,6 +1,6 @@
 {
 	"name": "@nextnode/logger",
-	"version": "0.3.3",
+	"version": "0.3.4",
 	"description": "A lightweight, zero-dependency TypeScript logging library for NextNode projects with scope-based organization, environment-aware formatting, and pluggable transports",
 	"keywords": [
 		"browser",
@@ -27,6 +27,7 @@
 		"dist/**/*.d.ts",
 		"dist/**/*.js"
 	],
+	"main": "./dist/logger.js",
 	"scripts": {
 		"prebuild": "pnpm clean",
 		"build": "tsup",
@@ -70,8 +71,6 @@
 	},
 	"packageManager": "pnpm@10.11.0",
 	"type": "module",
-	"main": "./dist/logger.js",
-	"types": "./dist/logger.d.ts",
 	"exports": {
 		".": {
 			"types": "./dist/logger.d.ts",
@@ -87,5 +86,6 @@
 		}
 	},
 	"prettier": "@nextnode/standards/prettier/core",
-	"sideEffects": false
+	"sideEffects": false,
+	"types": "./dist/logger.d.ts"
 }
